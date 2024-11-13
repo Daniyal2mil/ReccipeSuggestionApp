@@ -16,7 +16,7 @@ if user_ingredients:
     user_ingredients = [ingredient.strip().lower() for ingredient in user_ingredients.split(",")]
 
     # Function to find recipes that match user's ingredients
-    def find_matching_recipes(user_ingredients, df):
+  def find_matching_recipes(user_ingredients, df):
     matching_recipes = []
     for _, row in df.iterrows():
         # Ensure the ingredients field is a string before splitting
@@ -37,7 +37,7 @@ if user_ingredients:
     # Sort recipes by the number of matching ingredients, descending
     matching_recipes.sort(key=lambda x: x[1], reverse=True)
     
-    return matching_recipes
+   return matching_recipes
 
 
     # Find recipes and display them
