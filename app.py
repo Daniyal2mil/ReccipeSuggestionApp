@@ -37,7 +37,7 @@ if user_ingredients:
     # Sort recipes by the number of matching ingredients, descending
     matching_recipes.sort(key=lambda x: x[1], reverse=True)
     
-   return matching_recipes
+    return matching_recipes
 
 
     # Find recipes and display them
