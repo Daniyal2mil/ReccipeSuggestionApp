@@ -16,29 +16,28 @@ if user_ingredients:
     user_ingredients = [ingredient.strip().lower() for ingredient in user_ingredients.split(",")]
 
     # Function to find recipes that match user's ingredients
-  def find_matching_recipes(user_ingredients, df):
-    matching_recipes = []
-    for _, row in df.iterrows():
-        # Ensure the ingredients field is a string before splitting
-        if isinstance(row['ingredients'], str):
-            recipe_ingredients = row['ingredients'].split("|")
-            recipe_ingredients = [ingredient.strip().lower() for ingredient in recipe_ingredients]
-        else:
-            # Skip this row if ingredients are missing or not a string
-            continue
+    def find_matching_recipes(user_ingredients, df):
+        matching_recipes = []
+        for _, row in df.iterrows():
+            # Ensure the ingredients field is a string before splitting
+            if isinstance(row['ingredients'], str):
+                recipe_ingredients = row['ingredients'].split("|")
+                recipe_ingredients = [ingredient.strip().lower() for ingredient in recipe_ingredients]
+            else:
+                # Skip this row if ingredients are missing or not a string
+                continue
 
-        # Calculate how many ingredients match
-        matches = set(user_ingredients).intersection(set(recipe_ingredients))
-        match_count = len(matches)
+            # Calculate how many ingredients match
+            matches = set(user_ingredients).intersection(set(recipe_ingredients))
+            match_count = len(matches)
+            
+            if match_count > 0:  # Only include recipes with at least one matching ingredient
+                matching_recipes.append((row['recipe_title'], match_count, row['instructions'], row['url']))
+
+        # Sort recipes by the number of matching ingredients, descending
+        matching_recipes.sort(key=lambda x: x[1], reverse=True)
         
-        if match_count > 0:  # Only include recipes with at least one matching ingredient
-            matching_recipes.append((row['recipe_title'], match_count, row['instructions'], row['url']))
-
-    # Sort recipes by the number of matching ingredients, descending
-    matching_recipes.sort(key=lambda x: x[1], reverse=True)
-    
-    return matching_recipes
-
+        return matching_recipes
 
     # Find recipes and display them
     matching_recipes = find_matching_recipes(user_ingredients, df)
