@@ -15,7 +15,7 @@ if user_ingredients:
     # Convert user input to a list of ingredients
     user_ingredients = [ingredient.strip().lower() for ingredient in user_ingredients.split(",")]
 
-    # Function to find recipes that match user's ingredients
+    # Function to find recipes that match user's ingredients with at least 75% match
     def find_matching_recipes(user_ingredients, df):
         matching_recipes = []
         for _, row in df.iterrows():
@@ -24,18 +24,29 @@ if user_ingredients:
                 recipe_ingredients = row['ingredients'].split("|")
                 recipe_ingredients = [ingredient.strip().lower() for ingredient in recipe_ingredients]
             else:
-                # Skip this row if ingredients are missing or not a string
                 continue
 
-            # Calculate how many ingredients match
+            # Calculate matching ingredients
             matches = set(user_ingredients).intersection(set(recipe_ingredients))
             match_count = len(matches)
-            
-            if match_count > 0:  # Only include recipes with at least one matching ingredient
-                matching_recipes.append((row['recipe_title'], match_count, row['instructions'], row['url']))
+            total_ingredients = len(recipe_ingredients)
+            match_percentage = match_count / total_ingredients
 
-        # Sort recipes by the number of matching ingredients, descending
-        matching_recipes.sort(key=lambda x: x[1], reverse=True)
+            # Only include recipes with at least 75% matching ingredients
+            if match_percentage >= 0.75:
+                missing_ingredients = set(recipe_ingredients) - set(matches)
+                matching_recipes.append({
+                    "title": row['recipe_title'],
+                    "match_count": match_count,
+                    "total_ingredients": total_ingredients,
+                    "match_percentage": match_percentage,
+                    "instructions": row['instructions'],
+                    "url": row['url'],
+                    "missing_ingredients": missing_ingredients
+                })
+
+        # Sort recipes by the percentage of matching ingredients, descending
+        matching_recipes.sort(key=lambda x: x["match_percentage"], reverse=True)
         
         return matching_recipes
 
@@ -45,9 +56,11 @@ if user_ingredients:
     if matching_recipes:
         st.subheader("Recipes you can make:")
         for recipe in matching_recipes:
-            st.write(f"**Recipe:** [{recipe[0]}]({recipe[3]})")
-            st.write(f"**Matching Ingredients Count:** {recipe[1]}")
-            st.write(f"**Instructions:** {recipe[2]}")
+            st.write(f"**Recipe:** [{recipe['title']}]({recipe['url']})")
+            st.write(f"**Matching Ingredients:** {recipe['match_count']} / {recipe['total_ingredients']} ({recipe['match_percentage']:.0%})")
+            st.write(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}")
+            st.write(f"**Instructions:** {recipe['instructions']}")
             st.write("---")
     else:
         st.write("No matching recipes found. Try different ingredients.")
+
