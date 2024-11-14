@@ -47,8 +47,11 @@ if user_ingredients:
 
             # Only include recipes with at least 50% matching ingredients
             if match_percentage >= 0.5:
-                # Find missing ingredients for better feedback
-                missing_ingredients = set(recipe_ingredients) - set(matches)
+                # Find missing ingredients more precisely
+                missing_ingredients = [
+                    recipe_ingredient for recipe_ingredient in recipe_ingredients
+                    if not any(user_ingredient in recipe_ingredient for user_ingredient in user_ingredients)
+                ]
                 matching_recipes.append({
                     "title": row['recipe_title'],
                     "match_count": match_count,
