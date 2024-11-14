@@ -11,6 +11,7 @@ st.title("🍲 Virtual Recipe Suggestion App")
 st.write("Find recipes based on the ingredients you have on hand!")
 
 # Add custom styles
+# Ensure the path to the CSS file is correct
 with open('assets/style.css', 'r') as css_file:
     st.markdown(f'<style>{css_file.read()}</style>', unsafe_allow_html=True)
 
@@ -109,4 +110,5 @@ if user_ingredients:
 
     else:
         st.write("No matching recipes found. Try different ingredients.")
+
 
