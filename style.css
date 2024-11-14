@@ -1,38 +1,72 @@
-/* Set full background image */
-.stApp {
-    background-image: url('food.gif');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    background-position: center;
-    color: black; /* Light text color for visibility */
+/* Main container styling */
+body, .app-container {
+    background-color: #1e1e1e;
+    color: #f5f5f5;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
 }
 
-/* Style titles */
-.stApp h1 {
-    font-family: 'Georgia', serif;
-    color: #ff7f50; /* Coral color for a warm look */
+/* Title styling */
+h1 {
+    font-size: 2.5rem;
+    color: #ff8c00;
+    text-align: center;
+    margin-bottom: 10px;
 }
 
-/* Style text input box */
+/* Paragraph styling */
+p {
+    font-size: 1.2rem;
+    color: #d3d3d3;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Input section styling */
+.input-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 input[type="text"] {
-    border: 2px solid #ff7f50;
     padding: 10px;
-    border-radius: 8px;
+    border: 1px solid #ff8c00;
+    border-radius: 5px;
+    background-color: #333;
+    color: #f5f5f5;
+    width: 300px;
 }
 
-/* Style buttons */
 button {
-    background-color: lightgray;
-    color: white;
+    padding: 10px 20px;
+    background-color: #ff8c00;
+    color: #fff;
     border: none;
     border-radius: 5px;
-    padding: 10px;
+    cursor: pointer;
 }
 
-/* Add padding around containers */
-.stContainer {
-    padding: 20px;
-    border-radius: 8px;
-    background-color: rgba(0, 0, 0, 0.6); /* Dark overlay for readability */
+button:hover {
+    background-color: #ff9c10;
+}
+
+/* Results section styling */
+.results-section {
+    margin-top: 20px;
+    width: 100%;
+    max-width: 600px;
+}
+
+.instructions {
+    background-color: #2e2e2e;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    color: #e0e0e0;
 }
