@@ -9,10 +9,12 @@ df = pd.read_csv("food_recipes.csv")
 st.markdown("""
     <style>
         /* Set background GIF for the entire page */
-        body {
+        .main {
             background: url('https://media.giphy.com/media/Buva2aomcuXBAD07PC/giphy.gif') no-repeat center center fixed;
             background-size: cover;
-            font-family: Arial, sans-serif;
+            padding: 2rem;
+            border-radius: 10px;
+            color: white;
         }
         /* Title styling with a border */
         .title {
@@ -78,6 +80,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Display the title and description of the app in a styled layout
+st.markdown("<div class='main'>", unsafe_allow_html=True)
 st.markdown("<h1 class='title'>Virtual Recipe Suggestion App</h1>", unsafe_allow_html=True)
 st.markdown("<p class='description'>Find recipes based on the ingredients you have on hand!</p>", unsafe_allow_html=True)
 
@@ -159,3 +162,5 @@ if user_ingredients:
             st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.write("No matching recipes found. Try different ingredients.")
+
+st.markdown("</div>", unsafe_allow_html=True)
