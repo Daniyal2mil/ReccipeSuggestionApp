@@ -15,7 +15,7 @@ if user_ingredients:
     # Convert user input to a list of ingredients
     user_ingredients = [ingredient.strip().lower() for ingredient in user_ingredients.split(",")]
 
-    # Function to find recipes that match user's ingredients with at least 75% match
+    # Function to find recipes that match user's ingredients with at least 50% match
     def find_matching_recipes(user_ingredients, df):
         matching_recipes = []
         for _, row in df.iterrows():
@@ -32,8 +32,8 @@ if user_ingredients:
             total_ingredients = len(recipe_ingredients)
             match_percentage = match_count / total_ingredients
 
-            # Only include recipes with at least 75% matching ingredients
-            if match_percentage >= 0.75:
+            # Only include recipes with at least 50% matching ingredients
+            if match_percentage >= 0.5:
                 missing_ingredients = set(recipe_ingredients) - set(matches)
                 matching_recipes.append({
                     "title": row['recipe_title'],
@@ -63,4 +63,3 @@ if user_ingredients:
             st.write("---")
     else:
         st.write("No matching recipes found. Try different ingredients.")
-
