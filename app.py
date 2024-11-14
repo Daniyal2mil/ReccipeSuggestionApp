@@ -73,7 +73,12 @@ if user_ingredients:
             st.write(f"**Recipe:** [{recipe['title']}]({recipe['url']})")
             st.write(f"**Matching Ingredients:** {recipe['match_count']} / {recipe['total_ingredients']} ({recipe['match_percentage']:.0%})")
             st.write(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}")
-            st.write(f"**Instructions:** {recipe['instructions']}")
+            
+            # Split the instructions by "|" and format as bullet points
+            st.write("**Instructions:**")
+            instructions = recipe['instructions'].split("|")
+            for step in instructions:
+                st.write(f"- {step.strip()}")
             st.write("---")
     else:
         st.write("No matching recipes found. Try different ingredients.")
