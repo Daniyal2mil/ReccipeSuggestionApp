@@ -3,30 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Recipe Suggestion App 🍽️</title>
-    <link rel="stylesheet" href="styles.css"> <!-- External CSS file -->
+    <title>Virtual Recipe Suggestion App</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>🍽️ Virtual Recipe Suggestion App</h1>
-        <p>Find recipes based on the ingredients you have on hand!</p>
-    </header>
+    <div class="container">
+        <header>
+            <h1>🍲 Virtual Recipe Suggestion App</h1>
+            <p>Find recipes based on the ingredients you have on hand!</p>
+        </header>
 
-    <section class="input-section">
-        <label for="user-ingredients">Enter the ingredients you have (comma-separated):</label>
-        <input type="text" id="user-ingredients" placeholder="e.g., tomatoes, cheese, chicken">
-        <button onclick="findRecipes()">Find Recipes</button>
-    </section>
-
-    <section id="recipes-section" class="recipe-list">
-        <!-- Recipes will be dynamically inserted here -->
-    </section>
-
-    <footer>
-        <p>&copy; 2024 Virtual Recipe Suggestion App. All rights reserved.</p>
-    </footer>
-
-    <script src="app.js"></script> <!-- External JS file -->
+        <div class="content">
+            <input type="text" id="ingredients" placeholder="Enter the ingredients you have (comma-separated)" />
+        </div>
+        
+        <div id="recipes" class="recipe-list"></div>
+    </div>
 </body>
 </html>
+
 
