@@ -1,13 +1,18 @@
 import streamlit as st
 import pandas as pd
 import re
+import streamlit.components.v1 as components
 
 # Load the recipe dataset
 df = pd.read_csv("food_recipes.csv")
 
-# Display the title and description of the app
-st.title("Virtual Recipe Suggestion App")
+# Display the title and description of the app with emoji
+st.title("🍲 Virtual Recipe Suggestion App")
 st.write("Find recipes based on the ingredients you have on hand!")
+
+# Add custom styles
+with open('assets/style.css', 'r') as css_file:
+    st.markdown(f'<style>{css_file.read()}</style>', unsafe_allow_html=True)
 
 # Get user input for ingredients
 user_ingredients = st.text_input("Enter the ingredients you have (comma-separated):")
@@ -86,17 +91,22 @@ if user_ingredients:
         
         return matching_recipes
 
-    # Find recipes and display them
+    # Find recipes and display them with custom HTML
     matching_recipes = find_matching_recipes(user_ingredients, df)
     
     if matching_recipes:
         st.subheader("Recipes you can make:")
         for recipe in matching_recipes:
-            st.write(f"**Recipe:** [{recipe['title']}]({recipe['url']})")
-            st.write(f"**Matching Ingredients:** {recipe['match_count']} / {recipe['total_ingredients']} ({recipe['match_percentage']:.0%})")
-            st.write(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}")
-            st.write(f"**Instructions:** {recipe['instructions']}")
-            st.write("---")
+            recipe_html = f"""
+            <div class="recipe-card">
+                <h3><a href="{recipe['url']}" target="_blank">{recipe['title']}</a></h3>
+                <p><strong>Matching Ingredients:</strong> {recipe['match_count']} / {recipe['total_ingredients']} ({recipe['match_percentage']:.0%})</p>
+                <p><strong>Missing Ingredients:</strong> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
+                <p><strong>Instructions:</strong> {recipe['instructions']}</p>
+            </div>
+            """
+            components.html(recipe_html, height=300)
+
     else:
         st.write("No matching recipes found. Try different ingredients.")
 
