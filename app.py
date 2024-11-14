@@ -1,11 +1,6 @@
 import streamlit as st
 import pandas as pd
 import re
-from background import set_gif_as_page_bg  # Import the function from background.py
-
-# Set the GIF background
-set_gif_as_page_bg('food.gif')
-
 
 def local_css(file_name):
     with open(file_name) as f:
