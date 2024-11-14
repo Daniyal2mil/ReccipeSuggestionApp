@@ -5,49 +5,76 @@ import re
 # Load the recipe dataset
 df = pd.read_csv("food_recipes.csv")
 
-# Custom CSS for styling
+# Custom CSS for styling (with background GIF and borders around headings)
 st.markdown("""
     <style>
+        /* Set background GIF for the entire app */
         .main {
-            background-color: #f4f7fc;
+            background: url('https://media.giphy.com/media/Buva2aomcuXBAD07PC/giphy.gif') no-repeat center center fixed;
+            background-size: cover;
             padding: 2rem;
             border-radius: 10px;
+            color: white;
         }
+        /* Title styling with a border */
         .title {
             color: #4CAF50;
             font-size: 2.5rem;
             font-weight: bold;
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            border-radius: 10px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.7);
         }
+        /* Description styling */
         .description {
             font-size: 1.25rem;
-            color: #555;
+            color: #ddd;
             margin-bottom: 2rem;
+            text-align: center;
         }
+        /* Ingredient input box styling */
         .ingredient-input {
             font-size: 1rem;
             padding: 10px;
             width: 100%;
             border-radius: 8px;
             border: 1px solid #ddd;
+            margin-bottom: 1.5rem;
         }
+        /* Recipe card styling */
         .recipe-card {
             background-color: #fff;
             border-radius: 8px;
             padding: 1.5rem;
             margin-bottom: 1rem;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin-left: auto;
+            margin-right: auto;
         }
+        /* Recipe title styling with a border */
         .recipe-title {
             color: #4CAF50;
             font-size: 1.75rem;
             font-weight: bold;
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.7);
         }
+        /* Missing ingredients text styling */
         .missing-ingredients {
             color: #f44336;
+            font-weight: bold;
         }
+        /* Match information styling */
         .match-info {
             font-size: 1rem;
             margin-top: 0.5rem;
+            color: #555;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -65,13 +92,10 @@ user_ingredients = st.text_input("Enter the ingredients you have (comma-separate
 
 # Function to clean and format instructions
 def clean_instructions(instruction_text):
-    # Replace '|' with a period to act as a sentence delimiter
     instruction_text = instruction_text.replace('|', '.')
     instruction_text = re.sub(r'\.\.+', '.', instruction_text)  # Replace multiple dots with a single dot
     instruction_text = re.sub(r'\s+\.', '.', instruction_text)  # Remove space before periods
     instruction_text = re.sub(r'\.\s*', '. ', instruction_text)  # Ensure single space after each period
-
-    # Capitalize the first letter of each sentence
     instruction_text = '. '.join(
         sentence.strip().capitalize() for sentence in instruction_text.split('. ')
     )
@@ -82,10 +106,8 @@ def clean_instructions(instruction_text):
 def find_matching_recipes(user_ingredients, df):
     matching_recipes = []
     for _, row in df.iterrows():
-        # Ensure the ingredients field is a string before splitting
         if isinstance(row['ingredients'], str):
             recipe_ingredients = row['ingredients'].split("|")
-            # Remove text within parentheses for each ingredient and convert to lowercase
             recipe_ingredients = [
                 re.sub(r"\(.*?\)", "", ingredient).strip().lower()
                 for ingredient in recipe_ingredients
@@ -93,10 +115,8 @@ def find_matching_recipes(user_ingredients, df):
         else:
             continue
 
-        # Calculate matching ingredients
         matches = []
         for user_ingredient in user_ingredients:
-            # Check if any recipe ingredient contains the user ingredient as a substring
             if any(user_ingredient in recipe_ingredient for recipe_ingredient in recipe_ingredients):
                 matches.append(user_ingredient)
 
@@ -104,9 +124,7 @@ def find_matching_recipes(user_ingredients, df):
         total_ingredients = len(recipe_ingredients)
         match_percentage = match_count / total_ingredients
 
-        # Only include recipes with at least 50% matching ingredients
         if match_percentage >= 0.5:
-            # Find missing ingredients more precisely
             missing_ingredients = [
                 recipe_ingredient for recipe_ingredient in recipe_ingredients
                 if not any(user_ingredient in recipe_ingredient for user_ingredient in user_ingredients)
@@ -121,7 +139,6 @@ def find_matching_recipes(user_ingredients, df):
                 "missing_ingredients": missing_ingredients
             })
 
-    # Sort recipes by the percentage of matching ingredients, descending
     matching_recipes.sort(key=lambda x: x["match_percentage"], reverse=True)
     
     return matching_recipes
