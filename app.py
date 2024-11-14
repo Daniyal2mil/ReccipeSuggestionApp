@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import re
 
 # Load the recipe dataset
 df = pd.read_csv("food_recipes.csv")
@@ -12,8 +13,11 @@ st.write("Find recipes based on the ingredients you have on hand!")
 user_ingredients = st.text_input("Enter the ingredients you have (comma-separated):")
 
 if user_ingredients:
-    # Convert user input to a list of ingredients
-    user_ingredients = [ingredient.strip().lower() for ingredient in user_ingredients.split(",")]
+    # Convert user input to a list of ingredients, ignoring parentheses
+    user_ingredients = [
+        re.sub(r"\(.*?\)", "", ingredient).strip().lower()
+        for ingredient in user_ingredients.split(",")
+    ]
 
     # Function to find recipes that match user's ingredients with at least 50% match
     def find_matching_recipes(user_ingredients, df):
@@ -22,7 +26,11 @@ if user_ingredients:
             # Ensure the ingredients field is a string before splitting
             if isinstance(row['ingredients'], str):
                 recipe_ingredients = row['ingredients'].split("|")
-                recipe_ingredients = [ingredient.strip().lower() for ingredient in recipe_ingredients]
+                # Remove text within parentheses for each ingredient
+                recipe_ingredients = [
+                    re.sub(r"\(.*?\)", "", ingredient).strip().lower()
+                    for ingredient in recipe_ingredients
+                ]
             else:
                 continue
 
