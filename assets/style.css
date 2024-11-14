@@ -17,16 +17,16 @@ header {
     background-color: #f28a8a;  /* Soft pink background */
     color: white;
     text-align: center;
-    padding: 60px 20px;
-    border-bottom: 6px solid #e36e6e;
+    padding: 80px 20px 20px; /* Add more top padding */
+    border-bottom: 6px solid #e36e6e; /* Add a border that won’t touch title */
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    margin-bottom: 40px;  /* Add space under the header */
+    margin-bottom: 50px;  /* Add space below the header */
 }
 
 .header-container h1 {
     font-family: 'Poppins', sans-serif; /* Custom font for heading */
     font-size: 3.5em;
-    margin-bottom: 15px;
+    margin-bottom: 20px; /* More space below the title */
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -180,3 +180,4 @@ footer {
 
 /* Custom Fonts for better Typography */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=Roboto:wght@400;500&display=swap');
+
