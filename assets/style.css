@@ -10,26 +10,26 @@ body {
     background-color: #f8f8f8;
     color: #333;
     line-height: 1.7;
-    padding: 0 20px;  /* Add some padding to the body for general spacing */
-    font-size: 1.15em; /* Increase base font size */
+    padding: 0 20px;
+    font-size: 1.15em;
 }
 
 /* Header Styling */
 header {
-    background-color: #f28a8a;  /* Soft pink background */
+    background-color: #f28a8a;
     color: white;
     text-align: center;
-    padding: 80px 20px 20px; /* Add more top padding */
-    border-bottom: 6px solid #e36e6e; /* Add a border that won’t touch title */
+    padding: 80px 20px 20px;
+    border-bottom: 6px solid #e36e6e;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    margin-bottom: 50px;  /* Add space below the header */
+    margin-bottom: 50px;
     border-radius: 12px;
 }
 
 .header-container h1 {
-    font-family: 'Poppins', sans-serif; /* Custom font for heading */
-    font-size: 3.7em;  /* Increase heading size */
-    margin-bottom: 20px; /* More space below the title */
+    font-family: 'Poppins', sans-serif;
+    font-size: 3.7em;
+    margin-bottom: 20px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -37,7 +37,7 @@ header {
 }
 
 .header-container p {
-    font-size: 1.4em;  /* Increase font size of description */
+    font-size: 1.4em;
     font-style: italic;
     font-weight: 300;
     color: #fff;
@@ -57,14 +57,14 @@ main {
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
     width: 100%;
-    max-width: 800px;  /* Keep it centered */
+    max-width: 800px;
     margin-left: auto;
     margin-right: auto;
-    border: 2px solid #000;  /* Black border */
+    border: 2px solid #000;
 }
 
 .search-container h2 {
-    font-size: 2.8em; /* Increase font size */
+    font-size: 2.8em;
     color: #444;
     font-weight: 600;
     margin-bottom: 15px;
@@ -73,7 +73,7 @@ main {
 }
 
 .search-container p {
-    font-size: 1.3em;  /* Increase font size */
+    font-size: 1.3em;
     color: #666;
     margin-bottom: 20px;
 }
@@ -87,16 +87,16 @@ main {
     border-radius: 8px;
     transition: transform 0.3s ease;
     font-family: 'Roboto', sans-serif;
-    border: 2px solid #000;  /* Black border */
+    border: 2px solid #000;
 }
 
 .recipe-card:hover {
-    transform: translateY(-5px); /* Lift effect */
+    transform: translateY(-5px);
 }
 
 .recipe-card h3 {
-    font-size: 2.2em;  /* Increase heading font size */
-    color: #4d4d4d;
+    font-size: 2.2em;
+    color: #4caf50;  /* Change this to green */
     font-weight: 700;
     margin-bottom: 15px;
     text-transform: capitalize;
@@ -116,14 +116,14 @@ main {
 }
 
 .recipe-card p {
-    font-size: 1.3em;  /* Increase font size */
+    font-size: 1.3em;
     margin: 15px 0;
     color: #555;
 }
 
 .recipe-card .match-info {
     font-weight: bold;
-    color: #4d90a1; /* Fresh Greenish tone */
+    color: #4d90a1;
     background-color: #e0f7fa;
     padding: 5px;
     border-radius: 5px;
@@ -133,7 +133,7 @@ main {
 
 .recipe-card .missing-info {
     font-weight: bold;
-    color: #d76c6c; /* Red for missing ingredients */
+    color: #d76c6c;
     background-color: #ffebee;
     padding: 5px;
     border-radius: 5px;
@@ -143,7 +143,7 @@ main {
 
 .recipe-card .instructions {
     margin-top: 20px;
-    font-size: 1.3em;  /* Increase font size */
+    font-size: 1.3em;
     color: #555;
     font-style: italic;
 }
@@ -154,7 +154,7 @@ footer {
     color: white;
     text-align: center;
     padding: 25px;
-    font-size: 1.2em;  /* Increase footer font size */
+    font-size: 1.2em;
     font-weight: 300;
     margin-top: 40px;
     box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
@@ -169,11 +169,11 @@ footer {
 /* Responsive Design */
 @media (max-width: 768px) {
     .header-container h1 {
-        font-size: 3.2em;  /* Adjust heading size */
+        font-size: 3.2em;
     }
 
     .search-container h2 {
-        font-size: 2.4em; /* Adjust search heading */
+        font-size: 2.4em;
     }
 
     .recipe-card {
@@ -181,14 +181,15 @@ footer {
     }
 
     .recipe-card h3 {
-        font-size: 1.8em; /* Adjust recipe card heading */
+        font-size: 1.8em;
     }
 
     .recipe-card p {
-        font-size: 1.1em; /* Adjust paragraph size */
+        font-size: 1.1em;
     }
 }
 
 /* Custom Fonts for better Typography */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=Roboto:wght@400;500&display=swap');
+
 
