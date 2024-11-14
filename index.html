@@ -4,22 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Virtual Recipe Suggestion App</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🍲 Virtual Recipe Suggestion App</h1>
+            <h1>🍴 Virtual Recipe Suggestion App</h1>
             <p>Find recipes based on the ingredients you have on hand!</p>
         </header>
 
-        <div class="content">
-            <input type="text" id="ingredients" placeholder="Enter the ingredients you have (comma-separated)" />
+        <div class="input-container">
+            <label for="ingredients">Enter the ingredients you have (comma-separated):</label>
+            <input type="text" id="ingredients" placeholder="e.g., tomato, onion, garlic">
         </div>
-        
-        <div id="recipes" class="recipe-list"></div>
+
+        <div class="recipes-container" id="recipes"></div>
     </div>
 </body>
 </html>
+
 
 
