@@ -5,9 +5,21 @@ import re
 # Load the recipe dataset
 df = pd.read_csv("food_recipes.csv")
 
-# Display the title and description of the app
-st.title("Virtual Recipe Suggestion App")
-st.write("Find recipes based on the ingredients you have on hand!")
+st.markdown("""
+    <link rel="stylesheet" href="style.css">
+    <div class="container">
+        <header>
+            <h1>🍲 Virtual Recipe Suggestion App</h1>
+            <p>Find recipes based on the ingredients you have on hand!</p>
+        </header>
+
+        <div class="content">
+            <input type="text" id="ingredients" placeholder="Enter the ingredients you have (comma-separated)" />
+        </div>
+        
+        <div id="recipes" class="recipe-list"></div>
+    </div>
+""", unsafe_allow_html=True)
 
 # Get user input for ingredients
 user_ingredients = st.text_input("Enter the ingredients you have (comma-separated):")
