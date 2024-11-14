@@ -5,18 +5,9 @@ import re
 # Load the recipe dataset
 df = pd.read_csv("food_recipes.csv")
 
-# Load custom HTML and CSS
-with open("index.html", "r") as f:
-    html_code = f.read()
-
-with open("styles.css", "r") as f:
-    css_code = f.read()
-
-# Inject CSS into the Streamlit app
-st.markdown(f"<style>{css_code}</style>", unsafe_allow_html=True)
-
-# Display the HTML structure
-st.markdown(html_code, unsafe_allow_html=True)
+# Display the title and description of the app
+st.title("Virtual Recipe Suggestion App")
+st.write("Find recipes based on the ingredients you have on hand!")
 
 # Get user input for ingredients
 user_ingredients = st.text_input("Enter the ingredients you have (comma-separated):")
@@ -108,3 +99,4 @@ if user_ingredients:
             st.write("---")
     else:
         st.write("No matching recipes found. Try different ingredients.")
+
