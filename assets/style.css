@@ -10,6 +10,7 @@ body {
     background-color: #f8f8f8;
     color: #333;
     line-height: 1.7;
+    padding: 0 20px;  /* Add some padding to the body for general spacing */
 }
 
 /* Header Styling */
@@ -21,6 +22,7 @@ header {
     border-bottom: 6px solid #e36e6e; /* Add a border that won’t touch title */
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     margin-bottom: 50px;  /* Add space below the header */
+    border-radius: 12px;
 }
 
 .header-container h1 {
@@ -57,6 +59,7 @@ main {
     max-width: 800px;  /* Keep it centered */
     margin-left: auto;
     margin-right: auto;
+    border: 1px solid #ddd;  /* Border for the search box */
 }
 
 .search-container h2 {
@@ -74,15 +77,16 @@ main {
     margin-bottom: 20px;
 }
 
-/* Recipe Card Styles */
+/* Recipe Cards - Thin Box */
 .recipe-card {
     background-color: #fff;
-    padding: 25px;
-    margin-bottom: 40px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
     transition: transform 0.3s ease;
     font-family: 'Roboto', sans-serif;
+    border: 1px solid #ddd;  /* Thin border around each recipe */
 }
 
 .recipe-card:hover {
@@ -153,6 +157,12 @@ footer {
     font-weight: 300;
     margin-top: 40px;
     box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+
+/* Global Box Shadow Effect */
+.box-shadow {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 /* Responsive Design */
@@ -180,4 +190,3 @@ footer {
 
 /* Custom Fonts for better Typography */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=Roboto:wght@400;500&display=swap');
-
