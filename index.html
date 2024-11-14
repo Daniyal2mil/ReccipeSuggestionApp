@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Recipe Suggestion App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <h1>Virtual Recipe Suggestion App</h1>
+        <p>Find recipes based on the ingredients you have on hand!</p>
+        <div class="input-section">
+            <input id="user_ingredients" type="text" placeholder="Enter ingredients (comma-separated)">
+            <button onclick="submitIngredients()">Find Recipes</button>
+        </div>
+        <div id="results" class="results-section">
+            <!-- Recipe results will be displayed here by Streamlit -->
+        </div>
+    </div>
+</body>
+</html>
