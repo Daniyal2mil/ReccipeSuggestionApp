@@ -11,6 +11,7 @@ body {
     color: #333;
     line-height: 1.7;
     padding: 0 20px;  /* Add some padding to the body for general spacing */
+    font-size: 1.15em; /* Increase base font size */
 }
 
 /* Header Styling */
@@ -27,7 +28,7 @@ header {
 
 .header-container h1 {
     font-family: 'Poppins', sans-serif; /* Custom font for heading */
-    font-size: 3.5em;
+    font-size: 3.7em;  /* Increase heading size */
     margin-bottom: 20px; /* More space below the title */
     font-weight: 600;
     text-transform: uppercase;
@@ -36,7 +37,7 @@ header {
 }
 
 .header-container p {
-    font-size: 1.3em;
+    font-size: 1.4em;  /* Increase font size of description */
     font-style: italic;
     font-weight: 300;
     color: #fff;
@@ -59,11 +60,11 @@ main {
     max-width: 800px;  /* Keep it centered */
     margin-left: auto;
     margin-right: auto;
-    border: 1px solid #ddd;  /* Border for the search box */
+    border: 2px solid #000;  /* Black border */
 }
 
 .search-container h2 {
-    font-size: 2.5em;
+    font-size: 2.8em; /* Increase font size */
     color: #444;
     font-weight: 600;
     margin-bottom: 15px;
@@ -72,7 +73,7 @@ main {
 }
 
 .search-container p {
-    font-size: 1.2em;
+    font-size: 1.3em;  /* Increase font size */
     color: #666;
     margin-bottom: 20px;
 }
@@ -86,7 +87,7 @@ main {
     border-radius: 8px;
     transition: transform 0.3s ease;
     font-family: 'Roboto', sans-serif;
-    border: 1px solid #ddd;  /* Thin border around each recipe */
+    border: 2px solid #000;  /* Black border */
 }
 
 .recipe-card:hover {
@@ -94,7 +95,7 @@ main {
 }
 
 .recipe-card h3 {
-    font-size: 2em;
+    font-size: 2.2em;  /* Increase heading font size */
     color: #4d4d4d;
     font-weight: 700;
     margin-bottom: 15px;
@@ -105,17 +106,17 @@ main {
 
 .recipe-card h3 a {
     text-decoration: none;
-    color: #f28a8a;
+    color: #4caf50;  /* Green color for links */
     font-weight: 700;
     transition: color 0.3s ease;
 }
 
 .recipe-card h3 a:hover {
-    color: #d76c6c;
+    color: #388e3c;  /* Darker green on hover */
 }
 
 .recipe-card p {
-    font-size: 1.1em;
+    font-size: 1.3em;  /* Increase font size */
     margin: 15px 0;
     color: #555;
 }
@@ -142,7 +143,7 @@ main {
 
 .recipe-card .instructions {
     margin-top: 20px;
-    font-size: 1.2em;
+    font-size: 1.3em;  /* Increase font size */
     color: #555;
     font-style: italic;
 }
@@ -153,7 +154,7 @@ footer {
     color: white;
     text-align: center;
     padding: 25px;
-    font-size: 1.1em;
+    font-size: 1.2em;  /* Increase footer font size */
     font-weight: 300;
     margin-top: 40px;
     box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.1);
@@ -168,11 +169,11 @@ footer {
 /* Responsive Design */
 @media (max-width: 768px) {
     .header-container h1 {
-        font-size: 2.8em;
+        font-size: 3.2em;  /* Adjust heading size */
     }
 
     .search-container h2 {
-        font-size: 2em;
+        font-size: 2.4em; /* Adjust search heading */
     }
 
     .recipe-card {
@@ -180,13 +181,14 @@ footer {
     }
 
     .recipe-card h3 {
-        font-size: 1.6em;
+        font-size: 1.8em; /* Adjust recipe card heading */
     }
 
     .recipe-card p {
-        font-size: 1em;
+        font-size: 1.1em; /* Adjust paragraph size */
     }
 }
 
 /* Custom Fonts for better Typography */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&family=Roboto:wght@400;500&display=swap');
+
