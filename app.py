@@ -26,7 +26,7 @@ if user_ingredients:
             # Ensure the ingredients field is a string before splitting
             if isinstance(row['ingredients'], str):
                 recipe_ingredients = row['ingredients'].split("|")
-                # Remove text within parentheses for each ingredient
+                # Remove text within parentheses for each ingredient and convert to lowercase
                 recipe_ingredients = [
                     re.sub(r"\(.*?\)", "", ingredient).strip().lower()
                     for ingredient in recipe_ingredients
@@ -35,13 +35,19 @@ if user_ingredients:
                 continue
 
             # Calculate matching ingredients
-            matches = set(user_ingredients).intersection(set(recipe_ingredients))
+            matches = []
+            for user_ingredient in user_ingredients:
+                # Check if any recipe ingredient contains the user ingredient as a substring
+                if any(user_ingredient in recipe_ingredient for recipe_ingredient in recipe_ingredients):
+                    matches.append(user_ingredient)
+
             match_count = len(matches)
             total_ingredients = len(recipe_ingredients)
             match_percentage = match_count / total_ingredients
 
             # Only include recipes with at least 50% matching ingredients
             if match_percentage >= 0.5:
+                # Find missing ingredients for better feedback
                 missing_ingredients = set(recipe_ingredients) - set(matches)
                 matching_recipes.append({
                     "title": row['recipe_title'],
