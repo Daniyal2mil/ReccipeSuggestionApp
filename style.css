@@ -1,0 +1,38 @@
+/* Set full background image */
+.stApp {
+    background-image: url('food.gif');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    color: #ffffff; /* Light text color for visibility */
+}
+
+/* Style titles */
+.stApp h1 {
+    font-family: 'Georgia', serif;
+    color: #ff7f50; /* Coral color for a warm look */
+}
+
+/* Style text input box */
+input[type="text"] {
+    border: 2px solid #ff7f50;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Style buttons */
+button {
+    background-color: #ff7f50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+/* Add padding around containers */
+.stContainer {
+    padding: 20px;
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.6); /* Dark overlay for readability */
+}
