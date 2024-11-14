@@ -21,11 +21,20 @@ if user_ingredients:
 
     # Function to clean and format instructions
     def clean_instructions(instruction_text):
-        instruction_text = re.sub(r'\|', ' ', instruction_text)  # Replace | with space
-        instruction_text = re.sub(r'\.\.+', '.', instruction_text)  # Replace multiple dots with a single period
-        instruction_text = re.sub(r'\s+\.', '.', instruction_text)  # Remove spaces before periods
-        instruction_text = re.sub(r'\.\s*', '. ', instruction_text).strip()  # Ensure a single space after each period
-        return instruction_text
+        # Replace '|' with a period to act as a sentence delimiter
+        instruction_text = instruction_text.replace('|', '.')
+        
+        # Fix multiple periods and space formatting issues
+        instruction_text = re.sub(r'\.\.+', '.', instruction_text)  # Replace multiple dots with a single dot
+        instruction_text = re.sub(r'\s+\.', '.', instruction_text)  # Remove space before periods
+        instruction_text = re.sub(r'\.\s*', '. ', instruction_text)  # Ensure single space after each period
+
+        # Capitalize the first letter of each sentence
+        instruction_text = '. '.join(
+            sentence.strip().capitalize() for sentence in instruction_text.split('. ')
+        )
+
+        return instruction_text.strip()
 
     # Function to find recipes that match user's ingredients with at least 50% match
     def find_matching_recipes(user_ingredients, df):
@@ -88,4 +97,3 @@ if user_ingredients:
             st.write("---")
     else:
         st.write("No matching recipes found. Try different ingredients.")
-
