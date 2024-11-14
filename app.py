@@ -2,6 +2,12 @@ import streamlit as st
 import pandas as pd
 import re
 
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+local_css("style.css")
+
 # Load the recipe dataset
 df = pd.read_csv("food_recipes.csv")
 
