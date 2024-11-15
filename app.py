@@ -106,7 +106,7 @@ if user_ingredients:
         params = {
             "ingredients": ",".join(ingredients),
             "apiKey": API_KEY,
-            "number": 10,  # Number of recipes to return
+            "number": 20,  # Number of recipes to return
             "ranking": 1,  # Prioritize matching ingredients
         }
         try:
@@ -125,38 +125,44 @@ if user_ingredients:
             st.error("Invalid API response: Unable to parse JSON.")
             return []
 
+    # Process recipes to ensure all relevant matches are included
+    def filter_and_sort_recipes(recipes, ingredients):
+        filtered_recipes = []
+        for recipe in recipes:
+            # Identify matching and missing ingredients
+            used_ingredients = [
+                ing["name"]
+                for ing in recipe["usedIngredients"]
+                if ing["name"].lower() in ingredients
+            ]
+            missed_ingredients = [ing["name"] for ing in recipe["missedIngredients"]]
+            total_ingredients = len(used_ingredients) + len(missed_ingredients)
+            match_percentage = len(used_ingredients) / total_ingredients if total_ingredients > 0 else 0
+
+            # Include recipe if at least 30% of ingredients match
+            if match_percentage >= 0.3:
+                filtered_recipes.append(
+                    {
+                        "title": recipe["title"],
+                        "url": f"https://spoonacular.com/recipes/{recipe['title'].replace(' ', '-').lower()}-{recipe['id']}",
+                        "image": recipe.get("image", ""),
+                        "match_count": len(used_ingredients),
+                        "total_ingredients": total_ingredients,
+                        "match_percentage": match_percentage,
+                        "available_ingredients": used_ingredients,
+                        "missing_ingredients": missed_ingredients,
+                    }
+                )
+
+        # Sort recipes by match percentage and then by count of matched ingredients
+        filtered_recipes.sort(
+            key=lambda x: (x["match_percentage"], x["match_count"]), reverse=True
+        )
+        return filtered_recipes
+
     # Fetch and process recipes
     recipes = fetch_recipes(user_ingredients)
-
-    # Improved ingredient matching logic: exact matches only
-    def exact_match(available, recipe_ingredient):
-        return recipe_ingredient.lower() in available
-
-    # Filter recipes to include only those with a minimum of 30% match
-    filtered_recipes = []
-    for recipe in recipes:
-        used_ingredients = [
-            ing["name"]
-            for ing in recipe["usedIngredients"]
-            if exact_match(user_ingredients, ing["name"])
-        ]
-        missed_ingredients = [ing["name"] for ing in recipe["missedIngredients"]]
-        total_ingredients = len(used_ingredients) + len(missed_ingredients)
-        match_percentage = len(used_ingredients) / total_ingredients if total_ingredients > 0 else 0
-
-        if match_percentage >= 0.3:
-            filtered_recipes.append(
-                {
-                    "title": recipe["title"],
-                    "url": f"https://spoonacular.com/recipes/{recipe['title'].replace(' ', '-').lower()}-{recipe['id']}",
-                    "image": recipe.get("image", ""),
-                    "match_count": len(used_ingredients),
-                    "total_ingredients": total_ingredients,
-                    "match_percentage": match_percentage,
-                    "available_ingredients": used_ingredients,
-                    "missing_ingredients": missed_ingredients,
-                }
-            )
+    filtered_recipes = filter_and_sort_recipes(recipes, user_ingredients)
 
     if filtered_recipes:
         st.subheader("🍴 Recipes You Can Make:")
@@ -181,4 +187,3 @@ if user_ingredients:
             components.html(recipe_html, height=400)
     else:
         st.write("No matching recipes found. Try different ingredients.")
-
