@@ -5,7 +5,7 @@ import streamlit.components.v1 as components
 
 # Spoonacular API details
 API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
-API_KEY = "25d917fef9554ad3b05f732cd181a39f"  
+API_KEY = "25d917fef9554ad3b05f732cd181a39f"  # Replace with your actual API key
 
 # Display the title and description of the app with emoji
 st.title("🍲 Virtual Recipe Suggestion App")
@@ -128,7 +128,7 @@ if user_ingredients:
     # Fetch and process recipes
     recipes = fetch_recipes(user_ingredients)
 
-    # Filter recipes to include only those with at least one match
+    # Filter recipes to include only those with a minimum of 50% match
     filtered_recipes = [
         {
             "title": recipe["title"],
@@ -140,7 +140,7 @@ if user_ingredients:
             "missing_ingredients": [ing["name"] for ing in recipe["missedIngredients"]],
         }
         for recipe in recipes
-        if len(recipe["usedIngredients"]) > 0
+        if len(recipe["usedIngredients"]) / (len(recipe["usedIngredients"]) + len(recipe["missedIngredients"])) >= 0.5
     ]
 
     if filtered_recipes:
@@ -163,4 +163,5 @@ if user_ingredients:
             components.html(recipe_html, height=400)
     else:
         st.write("No matching recipes found. Try different ingredients.")
+
 
