@@ -17,6 +17,23 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Add dynamic styling for text visibility on light and dark backgrounds
+st.markdown("""
+    <style>
+        body {
+            color: black;
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                color: white;
+            }
+        }
+        .recipe-card p {
+            color: inherit; /* Use the same color as the body */
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Load custom CSS
 with open('assets/style.css', 'r') as css_file:
     st.markdown(f'<style>{css_file.read()}</style>', unsafe_allow_html=True)
@@ -115,4 +132,5 @@ if user_ingredients:
             components.html(recipe_html, height=300)
     else:
         st.write("No matching recipes found. Try different ingredients.")
+
 
