@@ -128,21 +128,35 @@ if user_ingredients:
     # Fetch and process recipes
     recipes = fetch_recipes(user_ingredients)
 
+    # Improved ingredient matching logic: exact matches only
+    def exact_match(available, recipe_ingredient):
+        return recipe_ingredient.lower() in available
+
     # Filter recipes to include only those with a minimum of 30% match
-    filtered_recipes = [
-        {
-            "title": recipe["title"],
-            "url": f"https://spoonacular.com/recipes/{recipe['title'].replace(' ', '-').lower()}-{recipe['id']}",
-            "image": recipe.get("image", ""),
-            "match_count": len(recipe["usedIngredients"]),
-            "total_ingredients": len(recipe["usedIngredients"]) + len(recipe["missedIngredients"]),
-            "match_percentage": len(recipe["usedIngredients"]) / (len(recipe["usedIngredients"]) + len(recipe["missedIngredients"])),
-            "available_ingredients": [ing["name"] for ing in recipe["usedIngredients"]],
-            "missing_ingredients": [ing["name"] for ing in recipe["missedIngredients"]],
-        }
-        for recipe in recipes
-        if len(recipe["usedIngredients"]) / (len(recipe["usedIngredients"]) + len(recipe["missedIngredients"])) >= 0.3
-    ]
+    filtered_recipes = []
+    for recipe in recipes:
+        used_ingredients = [
+            ing["name"]
+            for ing in recipe["usedIngredients"]
+            if exact_match(user_ingredients, ing["name"])
+        ]
+        missed_ingredients = [ing["name"] for ing in recipe["missedIngredients"]]
+        total_ingredients = len(used_ingredients) + len(missed_ingredients)
+        match_percentage = len(used_ingredients) / total_ingredients if total_ingredients > 0 else 0
+
+        if match_percentage >= 0.3:
+            filtered_recipes.append(
+                {
+                    "title": recipe["title"],
+                    "url": f"https://spoonacular.com/recipes/{recipe['title'].replace(' ', '-').lower()}-{recipe['id']}",
+                    "image": recipe.get("image", ""),
+                    "match_count": len(used_ingredients),
+                    "total_ingredients": total_ingredients,
+                    "match_percentage": match_percentage,
+                    "available_ingredients": used_ingredients,
+                    "missing_ingredients": missed_ingredients,
+                }
+            )
 
     if filtered_recipes:
         st.subheader("🍴 Recipes You Can Make:")
@@ -157,7 +171,7 @@ if user_ingredients:
                     <span class="match-percentage">({recipe['match_percentage']:.0%})</span>
                 </p>
                 <p style="color: #4b9e47; font-size: 1.1em;">
-                    <span class="ingredient-list">You Have:</span> {', '.join(recipe['available_ingredients']) if recipe['available_ingredients'] else 'None'}
+                    <span class="ingredient-list">Available Ingredients:</span> {', '.join(recipe['available_ingredients']) if recipe['available_ingredients'] else 'None'}
                 </p>
                 <p style="color: #4b9e47; font-size: 1.1em;">
                     <span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}
@@ -167,3 +181,4 @@ if user_ingredients:
             components.html(recipe_html, height=400)
     else:
         st.write("No matching recipes found. Try different ingredients.")
+
