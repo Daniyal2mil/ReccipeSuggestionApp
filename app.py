@@ -155,10 +155,10 @@ if user_ingredients:
             recipe_html = f"""
             <div class="recipe-card">
                 <h3><a href="{recipe['url']}" target="_blank">{recipe['title']}</a></h3>
-                <p><span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
+                <p style="color: #32CD32;"><span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
                 <span class="match-percentage">({recipe['match_percentage']:.0%})</span></p>
-                <p><span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
-                <p><strong>Instructions:</strong> {recipe['instructions']}</p>
+                <p style="color: #32CD32;"><span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
+                <p style="color: #32CD32;"><strong>Instructions:</strong> {recipe['instructions']}</p>
             </div>
             """
             components.html(recipe_html, height=300)
