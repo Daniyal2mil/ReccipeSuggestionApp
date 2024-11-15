@@ -10,29 +10,80 @@ df = pd.read_csv("food_recipes.csv")
 st.title("🍲 Virtual Recipe Suggestion App")
 st.markdown(
     """
-    <p style="text-align: center; font-size: 1.2em;">
+    <p style="text-align: center; font-size: 1.5em; font-weight: bold; color: #3c763d;">
         Find recipes based on the ingredients you have on hand! 🍳
     </p>
     """,
     unsafe_allow_html=True,
 )
 
-# Add lime green styling for all body text
+# Add styling for all body text, cards, and recipe elements
 st.markdown("""
     <style>
         body {
-            color: limegreen;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f8f4;
+            color: #333;
+        }
+        .recipe-card {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .recipe-card a {
+            text-decoration: none;
+            color: #007BFF;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .recipe-card a:hover {
+            text-decoration: underline;
         }
         .recipe-card p {
-            color: limegreen;
+            color: #555;
+        }
+        .header {
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        .ingredient-list {
+            color: #3c763d;
+            font-weight: bold;
+        }
+        .match-percentage {
+            color: #5bc0de;
+        }
+        .missing-ingredients {
+            color: #d9534f;
+        }
+        .input-box {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .input-box:focus {
+            border-color: #3c763d;
+            outline: none;
         }
     </style>
 """, unsafe_allow_html=True)
 
-
-
 # Get user input for ingredients
-user_ingredients = st.text_input("Enter the ingredients you have (comma-separated):")
+user_ingredients = st.text_input(
+    "Enter the ingredients you have (comma-separated):",
+    key="ingredients_input",
+    placeholder="e.g., chicken, rice, tomatoes",
+    help="Type ingredients you have at home to find recipes.",
+    max_chars=200,
+    label_visibility="visible",
+)
 
 if user_ingredients:
     # Convert user input to a list of ingredients
@@ -43,15 +94,11 @@ if user_ingredients:
 
     # Function to clean and format instructions
     def clean_instructions(instruction_text):
-        # Replace '|' with a period to act as a sentence delimiter
         instruction_text = instruction_text.replace('|', '.')
-        
-        # Fix multiple periods and space formatting issues
-        instruction_text = re.sub(r'\.\.+', '.', instruction_text)  # Replace multiple dots with a single dot
-        instruction_text = re.sub(r'\s+\.', '.', instruction_text)  # Remove space before periods
-        instruction_text = re.sub(r'\.\s*', '. ', instruction_text)  # Ensure single space after each period
+        instruction_text = re.sub(r'\.\.+', '.', instruction_text)
+        instruction_text = re.sub(r'\s+\.', '.', instruction_text)
+        instruction_text = re.sub(r'\.\s*', '. ', instruction_text)
 
-        # Capitalize the first letter of each sentence
         instruction_text = '. '.join(
             sentence.strip().capitalize() for sentence in instruction_text.split('. ')
         )
@@ -63,11 +110,8 @@ if user_ingredients:
         matching_recipes = []
         
         for _, row in df.iterrows():
-            # Ensure the ingredients field is a string before splitting
             if isinstance(row['ingredients'], str):
                 recipe_ingredients = row['ingredients'].split("|")
-                
-                # Remove text within parentheses for each ingredient and convert to lowercase
                 recipe_ingredients = [
                     re.sub(r"\(.*?\)", "", ingredient).strip().lower()
                     for ingredient in recipe_ingredients
@@ -75,10 +119,8 @@ if user_ingredients:
             else:
                 continue
 
-            # Calculate matching ingredients
             matches = []
             for user_ingredient in user_ingredients:
-                # Check if any recipe ingredient contains the user ingredient as a substring
                 if any(user_ingredient in recipe_ingredient for recipe_ingredient in recipe_ingredients):
                     matches.append(user_ingredient)
 
@@ -86,9 +128,7 @@ if user_ingredients:
             total_ingredients = len(recipe_ingredients)
             match_percentage = match_count / total_ingredients
 
-            # Only include recipes with at least 50% matching ingredients
             if match_percentage >= 0.5:
-                # Find missing ingredients more precisely
                 missing_ingredients = [
                     recipe_ingredient for recipe_ingredient in recipe_ingredients
                     if not any(user_ingredient in recipe_ingredient for user_ingredient in user_ingredients)
@@ -103,9 +143,7 @@ if user_ingredients:
                     "missing_ingredients": missing_ingredients
                 })
 
-        # Sort recipes by the percentage of matching ingredients, descending
         matching_recipes.sort(key=lambda x: x["match_percentage"], reverse=True)
-        
         return matching_recipes
 
     # Find recipes and display them with custom HTML
@@ -117,8 +155,9 @@ if user_ingredients:
             recipe_html = f"""
             <div class="recipe-card">
                 <h3><a href="{recipe['url']}" target="_blank">{recipe['title']}</a></h3>
-                <p><strong>Matching Ingredients:</strong> {recipe['match_count']} / {recipe['total_ingredients']} ({recipe['match_percentage']:.0%})</p>
-                <p><strong>Missing Ingredients:</strong> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
+                <p><span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
+                <span class="match-percentage">({recipe['match_percentage']:.0%})</span></p>
+                <p><span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
                 <p><strong>Instructions:</strong> {recipe['instructions']}</p>
             </div>
             """
