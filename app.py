@@ -43,7 +43,7 @@ st.markdown("""
             text-decoration: underline;
         }
         .recipe-card p {
-            color: #222; /* Darker text for better readability */
+            color: #555;
         }
         .header {
             text-align: center;
@@ -51,12 +51,15 @@ st.markdown("""
             font-weight: 500;
             margin-bottom: 20px;
         }
-        .ingredient-list, .missing-ingredients, .instructions-header {
-            font-weight: bold; /* Thicker, bolder text for these subheadings */
-            color: #333; /* Darker color for better readability */
+        .ingredient-list {
+            color: #3c763d;
+            font-weight: bold;
         }
         .match-percentage {
             color: #5bc0de;
+        }
+        .missing-ingredients {
+            color: #d9534f;
         }
         .input-box {
             width: 100%;
@@ -153,10 +156,10 @@ if user_ingredients:
             recipe_html = f"""
             <div class="recipe-card">
                 <h3><a href="{recipe['url']}" target="_blank">{recipe['title']}</a></h3>
-                <p class="ingredient-list"><span>Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
+                <p style="color: #4b9e47; font-size: 1.1em;"><span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
                 <span class="match-percentage">({recipe['match_percentage']:.0%})</span></p>
-                <p class="missing-ingredients"><span>Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
-                <p class="instructions-header"><strong>Instructions:</strong> {recipe['instructions']}</p>
+                <p style="color: #4b9e47; font-size: 1.1em;"><span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
+                <p style="color: #4b9e47; font-size: 1.1em;"><strong>Instructions:</strong> {recipe['instructions']}</p>
             </div>
             """
             components.html(recipe_html, height=300)
