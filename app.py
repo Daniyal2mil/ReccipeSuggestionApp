@@ -5,7 +5,7 @@ import streamlit.components.v1 as components
 
 # Spoonacular API details
 API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
-API_KEY = "25d917fef9554ad3b05f732cd181a39f"  # Replace with your actual API key
+API_KEY = "25d917fef9554ad3b05f732cd181a39f" 
 
 # Display the title and description of the app with emoji
 st.title("🍲 Virtual Recipe Suggestion App")
@@ -125,7 +125,7 @@ if user_ingredients:
             st.error("Invalid API response: Unable to parse JSON.")
             return []
 
-    # Improved ingredient matching logic: exact matches only
+    # Ingredient matching logic
     def exact_match(available, recipe_ingredient):
         return recipe_ingredient.lower() in available
 
@@ -143,7 +143,6 @@ if user_ingredients:
         total_ingredients = len(used_ingredients) + len(missed_ingredients)
         match_percentage = len(used_ingredients) / total_ingredients if total_ingredients > 0 else 0
 
-        # Add recipe to the list if it has at least a 30% match, no matter what its ranking is
         if match_percentage >= 0.3:
             filtered_recipes.append(
                 {
