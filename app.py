@@ -80,7 +80,7 @@ st.markdown("""
 user_ingredients = st.text_input(
     "Enter the ingredients you have (comma-separated):",
     key="ingredients_input",
-    placeholder="e.g., chicken, rice, tomatoes",
+    placeholder="e.g., oil, rice, salt",
     help="Type ingredients you have at home to find recipes.",
     max_chars=200,
     label_visibility="visible",
