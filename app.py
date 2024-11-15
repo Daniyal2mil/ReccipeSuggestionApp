@@ -5,7 +5,7 @@ import streamlit.components.v1 as components
 
 # Spoonacular API details
 API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
-API_KEY = "25d917fef9554ad3b05f732cd181a39f"  # Replace with your actual API key
+API_KEY = "your_api_key"  # Replace with your actual API key
 
 # Display the title and description of the app with emoji
 st.title("🍲 Virtual Recipe Suggestion App")
@@ -128,30 +128,35 @@ if user_ingredients:
     # Fetch and process recipes
     recipes = fetch_recipes(user_ingredients)
 
-    if recipes:
-        st.subheader("🍴 Recipes You Can Make:")
-        for recipe in recipes:
-            matching_recipes = {
-                "title": recipe["title"],
-                "url": f"https://spoonacular.com/recipes/{recipe['title'].replace(' ', '-').lower()}-{recipe['id']}",
-                "image": recipe.get("image", ""),
-                "match_count": len(recipe["usedIngredients"]),
-                "total_ingredients": len(recipe["usedIngredients"]) + len(recipe["missedIngredients"]),
-                "match_percentage": len(recipe["usedIngredients"]) / (len(recipe["usedIngredients"]) + len(recipe["missedIngredients"])),
-                "missing_ingredients": [ing["name"] for ing in recipe["missedIngredients"]],
-            }
+    # Filter recipes to include only those with at least one match
+    filtered_recipes = [
+        {
+            "title": recipe["title"],
+            "url": f"https://spoonacular.com/recipes/{recipe['title'].replace(' ', '-').lower()}-{recipe['id']}",
+            "image": recipe.get("image", ""),
+            "match_count": len(recipe["usedIngredients"]),
+            "total_ingredients": len(recipe["usedIngredients"]) + len(recipe["missedIngredients"]),
+            "match_percentage": len(recipe["usedIngredients"]) / (len(recipe["usedIngredients"]) + len(recipe["missedIngredients"])),
+            "missing_ingredients": [ing["name"] for ing in recipe["missedIngredients"]],
+        }
+        for recipe in recipes
+        if len(recipe["usedIngredients"]) > 0
+    ]
 
+    if filtered_recipes:
+        st.subheader("🍴 Recipes You Can Make:")
+        for recipe in filtered_recipes:
             # Display each recipe card
             recipe_html = f"""
             <div class="recipe-card">
-                <img src="{matching_recipes['image']}" alt="{matching_recipes['title']}">
-                <h3><a href="{matching_recipes['url']}" target="_blank">{matching_recipes['title']}</a></h3>
+                <img src="{recipe['image']}" alt="{recipe['title']}">
+                <h3><a href="{recipe['url']}" target="_blank">{recipe['title']}</a></h3>
                 <p style="color: #4b9e47; font-size: 1.1em;">
-                    <span class="ingredient-list">Matching Ingredients:</span> {matching_recipes['match_count']} / {matching_recipes['total_ingredients']} 
-                    <span class="match-percentage">({matching_recipes['match_percentage']:.0%})</span>
+                    <span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
+                    <span class="match-percentage">({recipe['match_percentage']:.0%})</span>
                 </p>
                 <p style="color: #4b9e47; font-size: 1.1em;">
-                    <span class="missing-ingredients">Missing Ingredients:</span> {', '.join(matching_recipes['missing_ingredients']) if matching_recipes['missing_ingredients'] else 'None'}
+                    <span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}
                 </p>
             </div>
             """
