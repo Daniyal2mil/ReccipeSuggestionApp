@@ -5,7 +5,7 @@ import streamlit.components.v1 as components
 
 # Spoonacular API details
 API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
-API_KEY = "25d917fef9554ad3b05f732cd181a39f"  # Replace with your actual API key
+API_KEY = "25d917fef9554ad3b05f732cd181a39f"  
 
 # Display the title and description of the app with emoji
 st.title("🍲 Virtual Recipe Suggestion App")
