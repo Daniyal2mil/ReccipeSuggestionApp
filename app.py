@@ -31,6 +31,7 @@ st.markdown("""
             margin-bottom: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 1.1em; /* Increased font size for readability */
         }
         .recipe-card a {
             text-decoration: none;
@@ -155,10 +156,10 @@ if user_ingredients:
             recipe_html = f"""
             <div class="recipe-card">
                 <h3><a href="{recipe['url']}" target="_blank">{recipe['title']}</a></h3>
-                <p style="color: #4b9e47;"><span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
+                <p style="color: #4b9e47; font-size: 1.1em;"><span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
                 <span class="match-percentage">({recipe['match_percentage']:.0%})</span></p>
-                <p style="color: #4b9e47;"><span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
-                <p style="color: #4b9e47;"><strong>Instructions:</strong> {recipe['instructions']}</p>
+                <p style="color: #4b9e47; font-size: 1.1em;"><span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
+                <p style="color: #4b9e47; font-size: 1.1em;"><strong>Instructions:</strong> {recipe['instructions']}</p>
             </div>
             """
             components.html(recipe_html, height=300)
