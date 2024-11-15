@@ -8,10 +8,16 @@ df = pd.read_csv("food_recipes.csv")
 
 # Display the title and description of the app with emoji
 st.title("🍲 Virtual Recipe Suggestion App")
-st.write("Find recipes based on the ingredients you have on hand!")
+st.markdown(
+    """
+    <p style="text-align: center; font-size: 1.2em;">
+        Find recipes based on the ingredients you have on hand! 🍳
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
 
-# Add custom styles
-# Ensure the path to the CSS file is correct
+# Load custom CSS
 with open('assets/style.css', 'r') as css_file:
     st.markdown(f'<style>{css_file.read()}</style>', unsafe_allow_html=True)
 
@@ -19,7 +25,7 @@ with open('assets/style.css', 'r') as css_file:
 user_ingredients = st.text_input("Enter the ingredients you have (comma-separated):")
 
 if user_ingredients:
-    # Convert user input to a list of ingredients, ignoring parentheses
+    # Convert user input to a list of ingredients
     user_ingredients = [
         re.sub(r"\(.*?\)", "", ingredient).strip().lower()
         for ingredient in user_ingredients.split(",")
@@ -96,7 +102,7 @@ if user_ingredients:
     matching_recipes = find_matching_recipes(user_ingredients, df)
     
     if matching_recipes:
-        st.subheader("Recipes you can make:")
+        st.subheader("🍴 Recipes You Can Make:")
         for recipe in matching_recipes:
             recipe_html = f"""
             <div class="recipe-card">
@@ -107,8 +113,6 @@ if user_ingredients:
             </div>
             """
             components.html(recipe_html, height=300)
-
     else:
         st.write("No matching recipes found. Try different ingredients.")
-
 
