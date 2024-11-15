@@ -17,19 +17,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Add dynamic styling for text visibility on light and dark backgrounds
+# Add lime green styling for all body text
 st.markdown("""
     <style>
         body {
-            color: black;
-        }
-        @media (prefers-color-scheme: dark) {
-            body {
-                color: white;
-            }
+            color: limegreen;
         }
         .recipe-card p {
-            color: inherit; /* Use the same color as the body */
+            color: limegreen;
         }
     </style>
 """, unsafe_allow_html=True)
