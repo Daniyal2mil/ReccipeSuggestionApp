@@ -31,11 +31,11 @@ st.markdown("""
             margin-bottom: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 1.1em; /* Increased font size for readability */
+            font-size: 1.1em;
         }
         .recipe-card a {
             text-decoration: none;
-            color: #d97706; /* Changed link color to a warm amber shade */
+            color: #d97706;
             font-size: 1.2em;
             font-weight: bold;
         }
@@ -87,10 +87,11 @@ user_ingredients = st.text_input(
 )
 
 if user_ingredients:
-    # Convert user input to a list of ingredients
+    # Convert user input to a cleaned list of ingredients
     user_ingredients = [
         re.sub(r"\(.*?\)", "", ingredient).strip().lower()
-        for ingredient in user_ingredients.split(",")
+        for ingredient in re.split(r",\s*|,\s*", user_ingredients)  # Split on commas and handle extra spaces
+        if ingredient.strip()  # Ignore empty entries
     ]
 
     # Function to clean and format instructions
