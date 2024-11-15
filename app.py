@@ -29,9 +29,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Load custom CSS
-with open('assets/style.css', 'r') as css_file:
-    st.markdown(f'<style>{css_file.read()}</style>', unsafe_allow_html=True)
+
 
 # Get user input for ingredients
 user_ingredients = st.text_input("Enter the ingredients you have (comma-separated):")
