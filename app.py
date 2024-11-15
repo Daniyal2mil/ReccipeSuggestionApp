@@ -129,7 +129,7 @@ if user_ingredients:
     def exact_match(available, recipe_ingredient):
         return recipe_ingredient.lower() in available
 
-    # Filter recipes to include only those with a minimum of 30% match on any ingredient
+    # Filter recipes to include only those with a minimum of 30% match
     filtered_recipes = []
     recipes = fetch_recipes(user_ingredients)
     
@@ -143,7 +143,7 @@ if user_ingredients:
         total_ingredients = len(used_ingredients) + len(missed_ingredients)
         match_percentage = len(used_ingredients) / total_ingredients if total_ingredients > 0 else 0
 
-        # Add recipe to the list if it has at least a 30% match
+        # Add recipe to the list if it has at least a 30% match, no matter what its ranking is
         if match_percentage >= 0.3:
             filtered_recipes.append(
                 {
