@@ -128,7 +128,7 @@ if user_ingredients:
     # Fetch and process recipes
     recipes = fetch_recipes(user_ingredients)
 
-    # Filter recipes to include only those with a minimum of 50% match
+    # Filter recipes to include only those with a minimum of 30% match
     filtered_recipes = [
         {
             "title": recipe["title"],
@@ -137,10 +137,11 @@ if user_ingredients:
             "match_count": len(recipe["usedIngredients"]),
             "total_ingredients": len(recipe["usedIngredients"]) + len(recipe["missedIngredients"]),
             "match_percentage": len(recipe["usedIngredients"]) / (len(recipe["usedIngredients"]) + len(recipe["missedIngredients"])),
+            "available_ingredients": [ing["name"] for ing in recipe["usedIngredients"]],
             "missing_ingredients": [ing["name"] for ing in recipe["missedIngredients"]],
         }
         for recipe in recipes
-        if len(recipe["usedIngredients"]) / (len(recipe["usedIngredients"]) + len(recipe["missedIngredients"])) >= 0.5
+        if len(recipe["usedIngredients"]) / (len(recipe["usedIngredients"]) + len(recipe["missedIngredients"])) >= 0.3
     ]
 
     if filtered_recipes:
@@ -156,6 +157,9 @@ if user_ingredients:
                     <span class="match-percentage">({recipe['match_percentage']:.0%})</span>
                 </p>
                 <p style="color: #4b9e47; font-size: 1.1em;">
+                    <span class="ingredient-list">You Have:</span> {', '.join(recipe['available_ingredients']) if recipe['available_ingredients'] else 'None'}
+                </p>
+                <p style="color: #4b9e47; font-size: 1.1em;">
                     <span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}
                 </p>
             </div>
@@ -163,5 +167,3 @@ if user_ingredients:
             components.html(recipe_html, height=400)
     else:
         st.write("No matching recipes found. Try different ingredients.")
-
-
