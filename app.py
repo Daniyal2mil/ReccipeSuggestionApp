@@ -10,7 +10,7 @@ df = pd.read_csv("food_recipes.csv")
 st.title("🍲 Virtual Recipe Suggestion App")
 st.markdown(
     """
-    <p style="text-align: center; font-size: 1.5em; font-weight: bold; color: #2e7d32;">
+    <p style="text-align: center; font-size: 1.5em; font-weight: bold; color: #3c763d;">
         Find recipes based on the ingredients you have on hand! 🍳
     </p>
     """,
@@ -22,29 +22,28 @@ st.markdown("""
     <style>
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f4f6f7;
+            background-color: #f4f8f4;
             color: #333;
         }
         .recipe-card {
-            background-color: #ffffff;
+            background-color: #fff;
             padding: 20px;
             margin-bottom: 20px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            font-size: 1.1em;
+            font-size: 1.1em; /* Increased font size for readability */
         }
         .recipe-card a {
             text-decoration: none;
-            color: #1e88e5; /* A slightly darker blue for readability */
+            color: #d97706; /* Changed link color to a warm amber shade */
             font-size: 1.2em;
             font-weight: bold;
         }
         .recipe-card a:hover {
             text-decoration: underline;
-            color: #1565c0; /* Darker shade on hover */
         }
         .recipe-card p {
-            color: #424242; /* Dark grey for general readability */
+            color: #555;
         }
         .header {
             text-align: center;
@@ -53,14 +52,14 @@ st.markdown("""
             margin-bottom: 20px;
         }
         .ingredient-list {
-            color: #2e7d32; /* Dark green for matching ingredients */
+            color: #3c763d;
             font-weight: bold;
         }
         .match-percentage {
-            color: #0288d1; /* Calming blue for match percentage */
+            color: #5bc0de;
         }
         .missing-ingredients {
-            color: #d32f2f; /* Bright red for missing ingredients */
+            color: #d9534f;
         }
         .input-box {
             width: 100%;
@@ -71,7 +70,7 @@ st.markdown("""
             margin-bottom: 20px;
         }
         .input-box:focus {
-            border-color: #2e7d32;
+            border-color: #3c763d;
             outline: none;
         }
     </style>
@@ -157,10 +156,10 @@ if user_ingredients:
             recipe_html = f"""
             <div class="recipe-card">
                 <h3><a href="{recipe['url']}" target="_blank">{recipe['title']}</a></h3>
-                <p><span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
+                <p style="color: #4b9e47; font-size: 1.1em;"><span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
                 <span class="match-percentage">({recipe['match_percentage']:.0%})</span></p>
-                <p><span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
-                <p><strong>Instructions:</strong> {recipe['instructions']}</p>
+                <p style="color: #4b9e47; font-size: 1.1em;"><span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients']) if recipe['missing_ingredients'] else 'None'}</p>
+                <p style="color: #4b9e47; font-size: 1.1em;"><strong>Instructions:</strong> {recipe['instructions']}</p>
             </div>
             """
             components.html(recipe_html, height=300)
