@@ -7,7 +7,7 @@ import streamlit.components.v1 as components
 API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
 API_KEY = "25d917fef9554ad3b05f732cd181a39f" 
 
-# Display the title and description of the app with emoji
+# Display the title and description of the app
 st.title("🍲 Virtual Recipe Suggestion App")
 st.markdown(
     """
@@ -106,8 +106,8 @@ if user_ingredients:
         params = {
             "ingredients": ",".join(ingredients),
             "apiKey": API_KEY,
-            "number": 50,  # Increase the number of recipes to return
-            "ranking": 1,  # Prioritize matching ingredients
+            "number": 50,  
+            "ranking": 1,  
         }
         try:
             response = requests.get(API_URL, params=params)
