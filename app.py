@@ -5,7 +5,7 @@ import streamlit.components.v1 as components
 from huggingface_hub import InferenceClient
 
 # Hugging Face Inference API details
-HUGGINGFACE_API_KEY = "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"  # Replace with your Hugging Face API key
+HUGGINGFACE_API_KEY = "your_huggingface_api_key"  # Replace with your Hugging Face API key
 HF_MODEL = "gpt2"  # Using GPT-2 model for AI generation
 
 # Initialize Hugging Face Inference Client
@@ -72,8 +72,9 @@ def get_substitute(ingredient):
     # AI prompt for ingredient substitution
     prompt = f"Suggest a common substitute for the ingredient: {ingredient}"
     try:
-        hf_response = hf_client.text_generation(inputs=prompt, parameters={"max_length": 50})
-        return hf_response["generated_text"]
+        # Use the correct method: generate()
+        hf_response = hf_client.generate(prompt=prompt, max_length=50)
+        return hf_response["generated_text"].strip()  # Get the generated substitution text
     except Exception as e:
         st.error(f"Error fetching substitute: {e}")
         return "No substitute found."
