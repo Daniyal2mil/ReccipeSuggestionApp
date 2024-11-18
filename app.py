@@ -1,149 +1,71 @@
 import streamlit as st
-import requests
 import re
-import streamlit.components.v1 as components
+import os
+from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 
-# Hugging Face Inference API details
-HUGGINGFACE_API_KEY = "your_huggingface_api_key"  # Replace with your Hugging Face API key
-HF_MODEL = "gpt2"  # Using GPT-2 model for AI generation
+# Load environment variables
+load_dotenv()
+HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
+HF_MODEL = "gpt2"  # Replace with your preferred model
 
 # Initialize Hugging Face Inference Client
 hf_client = InferenceClient(model=HF_MODEL, token=HUGGINGFACE_API_KEY)
 
-# Spoonacular API details
-API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
-API_KEY = "25d917fef9554ad3b05f732cd181a39f"  # Your Spoonacular API key
-
-# Display the title and description of the app
-st.title("🍲 Virtual Recipe Suggestion App")
-st.markdown(
-    """
+# Display the app title and description
+st.title("🍲 AI-Powered Recipe Suggestion App")
+st.markdown("""
     <p style="text-align: center; font-size: 1.5em; font-weight: bold; color: #3c763d;">
-        Find recipes based on the ingredients you have on hand! 🍳
+        Get personalized recipe ideas, ingredient substitutions, and cooking tips with AI! 🤖
     </p>
-    """,
-    unsafe_allow_html=True,
-)
+    """, unsafe_allow_html=True)
 
-# Add styling for all body text, cards, and recipe elements
-st.markdown("""<style>
-    body { font-family: 'Arial', sans-serif; background-color: #f4f8f4; color: #333; }
-    .recipe-card { background-color: #fff; padding: 20px; margin-bottom: 20px; border-radius: 10px;
-                   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); font-size: 1.1em; }
-    .recipe-card img { width: 100%; height: auto; border-radius: 10px; margin-bottom: 10px; }
-    .recipe-card a { text-decoration: none; color: #d97706; font-size: 1.2em; font-weight: bold; }
-    .recipe-card a:hover { text-decoration: underline; }
-    .header { text-align: center; font-size: 1.3em; font-weight: 500; margin-bottom: 20px; }
-    .ingredient-list { color: #3c763d; font-weight: bold; }
-    .match-percentage { color: #5bc0de; }
-    .missing-ingredients { color: #d9534f; }
-</style>""", unsafe_allow_html=True)
-
-# Get user input for ingredients
+# Add input for ingredients
 user_ingredients = st.text_input(
     "Enter the ingredients you have (comma-separated):",
-    key="ingredients_input",
-    placeholder="e.g., Buttermilk, Chicken, Paprika",
-    help="Type ingredients you have at home to find recipes.",
-    max_chars=200,
-    label_visibility="visible",
+    placeholder="e.g., Eggs, Tomatoes, Onions",
 )
 
-def fetch_recipes(ingredients):
-    params = {
-        "ingredients": ",".join(ingredients),
-        "apiKey": API_KEY,
-        "number": 50,
-        "ranking": 1,
-    }
+# AI Functionality
+def generate_recipe_suggestions(ingredients):
+    prompt = f"Suggest 3 recipes I can make using these ingredients: {', '.join(ingredients)}."
     try:
-        response = requests.get(API_URL, params=params)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        st.error(f"Error fetching recipes: {e}")
-        return []
-
-def exact_match(available, recipe_ingredient):
-    return recipe_ingredient.lower() in available
-
-def get_substitute(ingredient):
-    # AI prompt for ingredient substitution
-    prompt = f"Suggest a common substitute for the ingredient: {ingredient}"
-    try:
-        # Use the correct method: generate()
-        hf_response = hf_client.generate(prompt=prompt, max_length=50)
-        return hf_response["generated_text"].strip()  # Get the generated substitution text
+        response = hf_client.generate(prompt=prompt, max_length=200)
+        return response["generated_text"]
     except Exception as e:
-        st.error(f"Error fetching substitute: {e}")
+        st.error(f"Error generating recipes: {e}")
+        return "No recipes available."
+
+def suggest_substitute(ingredient):
+    prompt = f"What is a good substitute for {ingredient} in cooking?"
+    try:
+        response = hf_client.generate(prompt=prompt, max_length=50)
+        return response["generated_text"]
+    except Exception as e:
+        st.error(f"Error generating substitute: {e}")
         return "No substitute found."
 
+# Process user input
 if user_ingredients:
-    # Convert user input to a cleaned list of ingredients
-    user_ingredients = [
-        re.sub(r"\(.*?\)", "", ingredient).strip().lower()
-        for ingredient in re.split(r",\s*|,\s*", user_ingredients)  # Split on commas and handle extra spaces
-        if ingredient.strip()  # Ignore empty entries
-    ]
+    ingredients = [re.sub(r"\s+", " ", ing.strip().lower()) for ing in user_ingredients.split(",") if ing.strip()]
+    
+    # Get AI recipe suggestions
+    st.subheader("🍴 AI-Powered Recipe Suggestions:")
+    recipes = generate_recipe_suggestions(ingredients)
+    st.write(recipes)
+    
+    # Get AI ingredient substitutions
+    st.subheader("🧑‍🍳 Ingredient Substitutions:")
+    for ingredient in ingredients:
+        substitute = suggest_substitute(ingredient)
+        st.markdown(f"**Substitute for {ingredient}:** {substitute}")
 
-    # Fetch recipes from Spoonacular
-    recipes = fetch_recipes(user_ingredients)
-
-    # Filter recipes with at least 30% match
-    filtered_recipes = []
-    for recipe in recipes:
-        used_ingredients = [
-            ing["name"]
-            for ing in recipe["usedIngredients"]
-            if exact_match(user_ingredients, ing["name"])
-        ]
-        missed_ingredients = [ing["name"] for ing in recipe["missedIngredients"]]
-        total_ingredients = len(used_ingredients) + len(missed_ingredients)
-        match_percentage = len(used_ingredients) / total_ingredients if total_ingredients > 0 else 0
-
-        if match_percentage >= 0.3:
-            filtered_recipes.append(
-                {
-                    "title": recipe["title"],
-                    "url": f"https://spoonacular.com/recipes/{recipe['title'].replace(' ', '-').lower()}-{recipe['id']}",
-                    "image": recipe.get("image", ""),
-                    "match_count": len(used_ingredients),
-                    "total_ingredients": total_ingredients,
-                    "match_percentage": match_percentage,
-                    "available_ingredients": used_ingredients,
-                    "missing_ingredients": missed_ingredients,
-                }
-            )
-
-    # Display filtered recipes
-    if filtered_recipes:
-        st.subheader("🍴 Recipes You Can Make:")
-        for recipe in filtered_recipes:
-            recipe_html = f"""
-            <div class="recipe-card">
-                <img src="{recipe['image']}" alt="{recipe['title']}">
-                <h3><a href="{recipe['url']}" target="_blank">{recipe['title']}</a></h3>
-                <p style="color: #4b9e47;">
-                    <span class="ingredient-list">Matching Ingredients:</span> {recipe['match_count']} / {recipe['total_ingredients']} 
-                    <span class="match-percentage">({recipe['match_percentage']:.0%})</span>
-                </p>
-                <p style="color: #4b9e47;">
-                    <span class="ingredient-list">Available Ingredients:</span> {', '.join(recipe['available_ingredients'])}
-                </p>
-                <p style="color: #d9534f;">
-                    <span class="missing-ingredients">Missing Ingredients:</span> {', '.join(recipe['missing_ingredients'])}
-                </p>
-            </div>
-            """
-            components.html(recipe_html, height=400)
-
-            # AI-powered ingredient substitution
-            if recipe['missing_ingredients']:
-                st.subheader("🧑‍🍳 AI Substitutes for Missing Ingredients:")
-                for missing in recipe['missing_ingredients']:
-                    substitute = get_substitute(missing)
-                    st.markdown(f"**Substitute for {missing}:** {substitute}")
-    else:
-        st.write("No matching recipes found. Try different ingredients.")
-
+# Add additional AI functionalities
+st.subheader("✨ Cooking Tips and Tricks:")
+if st.button("Get a Cooking Tip"):
+    tip_prompt = "Give me a useful cooking tip for beginners."
+    try:
+        tip_response = hf_client.generate(prompt=tip_prompt, max_length=100)
+        st.write(tip_response["generated_text"])
+    except Exception as e:
+        st.error(f"Error fetching tip: {e}")
