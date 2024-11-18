@@ -136,9 +136,10 @@ if user_ingredients:
     ai_prompt = f"Suggest a creative recipe using the following ingredients: {', '.join(user_ingredients)}."
     with st.spinner("Generating your recipe..."):
         try:
-            hf_response = hf_client.text_generation(inputs=ai_prompt, max_new_tokens=200)
+            hf_response = hf_client.generate(input=ai_prompt, max_new_tokens=200)
             recipe = hf_response["generated_text"]
             st.markdown(f"**{recipe}**")
         except Exception as e:
             st.error(f"Error generating AI recipe: {e}")
+
 
