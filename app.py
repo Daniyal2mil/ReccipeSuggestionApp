@@ -2,14 +2,14 @@ import streamlit as st
 import requests
 import re
 import streamlit.components.v1 as components
-from huggingface_hub import InferenceApi
+from huggingface_hub import InferenceClient
 
 # Hugging Face Inference API details
 HUGGINGFACE_API_KEY = "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"  # Replace with your Hugging Face API key
 HF_MODEL = "gpt2"  # Using GPT-2 model for AI generation
 
-# Initialize Hugging Face Inference API
-hf_api = InferenceApi(repo_id=HF_MODEL, token=HUGGINGFACE_API_KEY)
+# Initialize Hugging Face Inference Client
+hf_client = InferenceClient(model=HF_MODEL, token=HUGGINGFACE_API_KEY)
 
 # Spoonacular API details
 API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
@@ -136,8 +136,9 @@ if user_ingredients:
     ai_prompt = f"Suggest a creative recipe using the following ingredients: {', '.join(user_ingredients)}."
     with st.spinner("Generating your recipe..."):
         try:
-            hf_response = hf_api(inputs=ai_prompt)
-            recipe = hf_response[0]["generated_text"]
+            hf_response = hf_client.text_generation(inputs=ai_prompt, max_new_tokens=200)
+            recipe = hf_response["generated_text"]
             st.markdown(f"**{recipe}**")
         except Exception as e:
             st.error(f"Error generating AI recipe: {e}")
+
