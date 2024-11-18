@@ -10,7 +10,29 @@ HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 HF_MODEL = "gpt2"  # Replace with your preferred model
 
 # Initialize Hugging Face Inference Client
-hf_client = InferenceClient(model=HF_MODEL, token=HUGGINGFACE_API_KEY)
+try:
+    hf_client = InferenceClient(model=HF_MODEL, token=HUGGINGFACE_API_KEY)
+except Exception as e:
+    st.error(f"Error initializing Hugging Face client: {e}")
+
+# Function to test if the API key is valid
+def test_api_key():
+    test_prompt = "Hello, world!"
+    try:
+        response = hf_client.text_generation(prompt=test_prompt, max_new_tokens=10)
+        if "generated_text" in response:
+            st.success("Hugging Face API key is working correctly!")
+            return True
+        else:
+            st.error("API key validation failed. Check your Hugging Face API key.")
+            return False
+    except Exception as e:
+        st.error(f"API key validation error: {e}")
+        return False
+
+# Validate API key at startup
+if not test_api_key():
+    st.stop()  # Stop the app if the API key is not valid
 
 # Display the app title and description
 st.title("🍲 AI-Powered Recipe Suggestion App")
@@ -30,7 +52,7 @@ user_ingredients = st.text_input(
 def generate_recipe_suggestions(ingredients):
     prompt = f"Suggest 3 recipes I can make using these ingredients: {', '.join(ingredients)}."
     try:
-        response = hf_client.generate(prompt=prompt, max_length=200)
+        response = hf_client.text_generation(prompt=prompt, max_new_tokens=200)
         return response["generated_text"]
     except Exception as e:
         st.error(f"Error generating recipes: {e}")
@@ -39,7 +61,7 @@ def generate_recipe_suggestions(ingredients):
 def suggest_substitute(ingredient):
     prompt = f"What is a good substitute for {ingredient} in cooking?"
     try:
-        response = hf_client.generate(prompt=prompt, max_length=50)
+        response = hf_client.text_generation(prompt=prompt, max_new_tokens=50)
         return response["generated_text"]
     except Exception as e:
         st.error(f"Error generating substitute: {e}")
@@ -65,7 +87,7 @@ st.subheader("✨ Cooking Tips and Tricks:")
 if st.button("Get a Cooking Tip"):
     tip_prompt = "Give me a useful cooking tip for beginners."
     try:
-        tip_response = hf_client.generate(prompt=tip_prompt, max_length=100)
+        tip_response = hf_client.text_generation(prompt=tip_prompt, max_new_tokens=100)
         st.write(tip_response["generated_text"])
     except Exception as e:
         st.error(f"Error fetching tip: {e}")
