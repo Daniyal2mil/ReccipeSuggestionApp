@@ -50,6 +50,34 @@ user_ingredients = st.text_input(
     label_visibility="visible",
 )
 
+def fetch_recipes(ingredients):
+    params = {
+        "ingredients": ",".join(ingredients),
+        "apiKey": API_KEY,
+        "number": 50,
+        "ranking": 1,
+    }
+    try:
+        response = requests.get(API_URL, params=params)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        st.error(f"Error fetching recipes: {e}")
+        return []
+
+def exact_match(available, recipe_ingredient):
+    return recipe_ingredient.lower() in available
+
+def get_substitute(ingredient):
+    # AI prompt for ingredient substitution
+    prompt = f"Suggest a common substitute for the ingredient: {ingredient}"
+    try:
+        hf_response = hf_client.text_generation(inputs=prompt, parameters={"max_length": 50})
+        return hf_response["generated_text"]
+    except Exception as e:
+        st.error(f"Error fetching substitute: {e}")
+        return "No substitute found."
+
 if user_ingredients:
     # Convert user input to a cleaned list of ingredients
     user_ingredients = [
@@ -57,26 +85,6 @@ if user_ingredients:
         for ingredient in re.split(r",\s*|,\s*", user_ingredients)  # Split on commas and handle extra spaces
         if ingredient.strip()  # Ignore empty entries
     ]
-
-    # Fetch recipes using Spoonacular API
-    def fetch_recipes(ingredients):
-        params = {
-            "ingredients": ",".join(ingredients),
-            "apiKey": API_KEY,
-            "number": 50,
-            "ranking": 1,
-        }
-        try:
-            response = requests.get(API_URL, params=params)
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            st.error(f"Error fetching recipes: {e}")
-            return []
-
-    # Ingredient matching logic
-    def exact_match(available, recipe_ingredient):
-        return recipe_ingredient.lower() in available
 
     # Fetch recipes from Spoonacular
     recipes = fetch_recipes(user_ingredients)
@@ -128,19 +136,13 @@ if user_ingredients:
             </div>
             """
             components.html(recipe_html, height=400)
+
+            # AI-powered ingredient substitution
+            if recipe['missing_ingredients']:
+                st.subheader("🧑‍🍳 AI Substitutes for Missing Ingredients:")
+                for missing in recipe['missing_ingredients']:
+                    substitute = get_substitute(missing)
+                    st.markdown(f"**Substitute for {missing}:** {substitute}")
     else:
         st.write("No matching recipes found. Try different ingredients.")
-
-    # AI-powered recipe suggestion
-    st.subheader("🧑‍🍳 AI-Generated Recipe Suggestion:")
-    ai_prompt = f"Suggest a creative recipe using the following ingredients: {', '.join(user_ingredients)}."
-    with st.spinner("Generating your recipe..."):
-        try:
-            # Using text_generation method correctly
-            hf_response = hf_client.text_generation(inputs=ai_prompt, parameters={"max_length": 200})
-            recipe = hf_response["generated_text"]
-            st.markdown(f"**{recipe}**")
-        except Exception as e:
-            st.error(f"Error generating AI recipe: {e}")
-
 
