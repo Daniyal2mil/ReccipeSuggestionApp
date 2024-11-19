@@ -1,48 +1,102 @@
-# Load the AI Model
-@st.cache_resource
-def load_model():
-    model_name = "EleutherAI/gpt-neo-1.3B"  # Open-source GPT-Neo model
-    tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir="./models")
-    model = AutoModelForCausalLM.from_pretrained(model_name, cache_dir="./models")
-    generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
-    return generator, tokenizer
+import streamlit as st
+import requests
+import re
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics.pairwise import cosine_similarity
 
-# Initialize the model and tokenizer
-generator, tokenizer = load_model()
+# Spoonacular API details
+API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
+API_KEY = "25d917fef9554ad3b05f732cd181a39f"  # Replace with your valid API key
 
-# Function to generate recipe suggestions
-def generate_recipe_suggestions(ingredients):
-    prompt = f"Suggest 3 recipes I can make using these ingredients: {', '.join(ingredients)}."
-    response = generator(
-        prompt,
-        max_length=250,
-        num_return_sequences=1,
-        truncation=True,
-        pad_token_id=tokenizer.eos_token_id,  # Set pad_token_id to eos_token_id
-    )
-    return response[0]["generated_text"]
+# Function to fetch recipes from Spoonacular API
+def fetch_recipes(ingredients, number=50):
+    params = {
+        "ingredients": ",".join(ingredients),
+        "apiKey": API_KEY,
+        "number": number,
+    }
+    response = requests.get(API_URL, params=params)
+    response.raise_for_status()
+    return response.json()
 
-# Function to suggest substitutes
-def suggest_substitute(ingredient):
-    prompt = f"What is a good substitute for {ingredient} in cooking?"
-    response = generator(
-        prompt,
-        max_length=50,
-        num_return_sequences=1,
-        truncation=True,
-        pad_token_id=tokenizer.eos_token_id,  # Set pad_token_id to eos_token_id
-    )
-    return response[0]["generated_text"]
+# Preprocess ingredients
+def preprocess_ingredients(ingredients):
+    return [
+        re.sub(r"\(.*?\)", "", ingredient).strip().lower()
+        for ingredient in re.split(r",\s*|,\s*", ingredients)
+        if ingredient.strip()
+    ]
 
-# Function to generate cooking tips
-def get_cooking_tip():
-    prompt = "Give me a useful cooking tip for beginners."
-    response = generator(
-        prompt,
-        max_length=100,
-        num_return_sequences=1,
-        truncation=True,
-        pad_token_id=tokenizer.eos_token_id,  # Set pad_token_id to eos_token_id
-    )
-    return response[0]["generated_text"]
+# Prepare dataset from API response
+def prepare_dataset(api_response, user_ingredients):
+    recipes = []
+    for recipe in api_response:
+        used = [ing["name"].lower() for ing in recipe["usedIngredients"]]
+        missed = [ing["name"].lower() for ing in recipe["missedIngredients"]]
+        total_ingredients = used + missed
+        label = 1 if len(used) / len(total_ingredients) >= 0.3 else 0
+        recipes.append({
+            "title": recipe["title"],
+            "ingredients": " ".join(total_ingredients),
+            "used_ingredients": used,
+            "missing_ingredients": missed,
+            "label": label,
+        })
+    return pd.DataFrame(recipes)
+
+# Train AI model
+def train_model(data):
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(data["ingredients"])
+    y = data["label"]
+    model = LogisticRegression()
+    model.fit(X, y)
+    return model, vectorizer
+
+# Recommend recipes
+def recommend_recipes(user_ingredients, data, model, vectorizer):
+    user_input_vector = vectorizer.transform([" ".join(user_ingredients)])
+    data["similarity"] = cosine_similarity(vectorizer.transform(data["ingredients"]), user_input_vector).flatten()
+    recommendations = data.sort_values("similarity", ascending=False).head(5)  # Top 5 recommendations
+    return recommendations
+
+# Streamlit App
+st.title("🍲 Virtual Recipe Suggestion App with AI")
+st.write("This app uses AI to suggest recipes based on your ingredients!")
+
+# User input
+user_input = st.text_input(
+    "Enter the ingredients you have (comma-separated):",
+    placeholder="e.g., Buttermilk, Chicken, Paprika",
+)
+
+if user_input:
+    user_ingredients = preprocess_ingredients(user_input)
+    
+    # Fetch recipes from Spoonacular API
+    with st.spinner("Fetching recipes..."):
+        api_response = fetch_recipes(user_ingredients)
+    
+    # Prepare dataset from API response
+    dataset = prepare_dataset(api_response, user_ingredients)
+    
+    # Train AI model dynamically
+    with st.spinner("Training AI model..."):
+        model, vectorizer = train_model(dataset)
+    
+    # Recommend recipes
+    recommendations = recommend_recipes(user_ingredients, dataset, model, vectorizer)
+    
+    if not recommendations.empty:
+        st.subheader("🍴 AI-Recommended Recipes:")
+        for _, recipe in recommendations.iterrows():
+            st.markdown(f"**[{recipe['title']}]({recipe['title']})**")
+            st.markdown(f"**Ingredients Used:** {', '.join(recipe['used_ingredients'])}")
+            st.markdown(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients'])}")
+            st.markdown(f"**Similarity Score:** {recipe['similarity']:.2f}")
+            st.markdown("---")
+    else:
+        st.error("No suitable recipes found. Try different ingredients!")
 
