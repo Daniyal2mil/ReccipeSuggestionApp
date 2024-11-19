@@ -12,6 +12,7 @@ model, tokenizer = load_model()
 
 # Function to generate a full recipe from a query
 def generate_recipe(query):
+    # Simplified prompt to guide the model without including instructions in the output
     prompt = f"Generate a detailed recipe for {query}. Include ingredients, instructions, and any tips."
 
     # Encode the prompt
@@ -25,9 +26,14 @@ def generate_recipe(query):
                             temperature=0.7,  # Control randomness
                             top_p=0.9,  # Ensure diverse outputs by sampling from top 90% likely words
                             top_k=50)  # Narrow down the sampling to top 50 choices for speed and relevance
-    
-    # Decode and return the generated recipe
-    return tokenizer.decode(output[0], skip_special_tokens=True)
+
+    # Decode the generated text and strip the prompt from the beginning
+    generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+
+    # Remove the prompt part from the beginning of the generated text
+    recipe = generated_text.replace(f"Generate a detailed recipe for {query}. Include ingredients, instructions, and any tips.", "").strip()
+
+    return recipe
 
 # Streamlit App
 st.title("AI Recipe Generator 🍴")
