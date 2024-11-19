@@ -2,9 +2,10 @@ import re
 import streamlit as st
 import requests
 from transformers import pipeline
+from sklearn.externals import joblib
 
 # Spoonacular API Setup
-SPOONACULAR_API_KEY = "https://api.spoonacular.com/recipes/findByIngredients"
+SPOONACULAR_API_KEY = "YOUR_SPOONACULAR_API_KEY"
 SPOONACULAR_URL = "https://api.spoonacular.com/recipes/findByIngredients"
 
 # GPT-2 Model
@@ -13,6 +14,9 @@ def load_gpt2_model():
     return pipeline("text-generation", model="gpt2", tokenizer="gpt2")
 
 gpt2 = load_gpt2_model()
+
+# Load a prebuilt model (assuming a model exists)
+model = joblib.load('text_classifier_model.pkl')  # Replace with actual model file path
 
 # Function to get recipes from Spoonacular
 def fetch_recipes(ingredients, diet_preference):
@@ -46,44 +50,75 @@ def clean_and_format_gpt2_output(raw_text):
     formatted = f"### {title}\n\n**Ingredients:**\n{ingredients}\n\n**Instructions:**\n{steps}"
     return formatted
 
+# Function to predict if search is ingredients-based or normal
+def predict_search_type(query):
+    return model.predict([query])[0]
+
 # Streamlit App
 st.title("AI-Enhanced Recipe Generator 🍽️")
-st.write("Enter your ingredients and select a dietary preference to get recipe suggestions, enhanced by AI!")
+st.write("Enter your ingredients or search by a normal query to get recipe suggestions, enhanced by AI!")
 
-# Input for ingredients
-ingredients = st.text_area("Enter ingredients (comma-separated):", placeholder="e.g., tomato, cheese, basil")
+# Input for ingredients or normal search
+query = st.text_area("Enter your query (ingredients or search term):", placeholder="e.g., tomato, cheese, basil or Pasta dishes")
 
 # Dropdown for dietary preferences
 diet_choices = ['None', 'Vegetarian', 'Vegan', 'Gluten-Free', 'Paleo', 'Keto']
 diet_preference = st.selectbox("Select dietary preference:", diet_choices)
 
 if st.button("Generate Recipes"):
-    if ingredients.strip():
-        if diet_preference == 'None':
-            diet_preference = ''  # No specific dietary preference
+    if query.strip():
+        # Predict the search type (ingredients or normal search)
+        search_type = predict_search_type(query)
 
         with st.spinner("Fetching recipes..."):
-            recipes = fetch_recipes(ingredients, diet_preference)
-        
-        if recipes:
-            st.subheader("Recipes from Spoonacular:")
-            for recipe in recipes:
-                st.markdown(f"### {recipe['title']}")
-                st.image(recipe.get("image", ""), width=300)
+            if search_type == "ingredients":
+                # Fetch recipes based on ingredients
+                recipes = fetch_recipes(query, diet_preference if diet_preference != 'None' else '')
                 
-                # Enhance with GPT-2
-                prompt = f"Generate a well-structured recipe based on {recipe['title']} and the ingredients: {ingredients}. Include a title, ingredients, and clear steps. Ensure the recipe fits a {diet_preference} diet."
-                raw_ai_recipe = gpt2(prompt, max_length=300, num_return_sequences=1)[0]["generated_text"]
+                if recipes:
+                    st.subheader("Recipes based on Ingredients:")
+                    for recipe in recipes:
+                        # Check available and missing ingredients
+                        available_ingredients = [ingredient for ingredient in recipe['ingredients'] if ingredient in query]
+                        missing_ingredients = list(set(recipe['ingredients']) - set(available_ingredients))
+
+                        st.markdown(f"### {recipe['title']}")
+                        st.image(recipe.get("image", ""), width=300)
+
+                        st.write(f"**Available ingredients**: {', '.join(available_ingredients)}")
+                        st.write(f"**Missing ingredients**: {', '.join(missing_ingredients)}")
+
+                        # Enhance with GPT-2
+                        prompt = f"Generate a well-structured recipe based on {recipe['title']} and the ingredients: {query}. Include a title, ingredients, and clear steps. Ensure the recipe fits a {diet_preference} diet."
+                        raw_ai_recipe = gpt2(prompt, max_length=300, num_return_sequences=1)[0]["generated_text"]
+
+                        # Clean and format output
+                        formatted_recipe = clean_and_format_gpt2_output(raw_ai_recipe)
+                        st.markdown("**AI-Enhanced Recipe**")
+                        st.markdown(formatted_recipe, unsafe_allow_html=True)
+                else:
+                    st.error("No recipes found!")
+            else:
+                # Fetch normal recipes
+                recipes = fetch_recipes(query, diet_preference if diet_preference != 'None' else '')
                 
-                # Clean and format output
-                formatted_recipe = clean_and_format_gpt2_output(raw_ai_recipe)
-                
-                st.markdown("**AI-Enhanced Recipe**")
-                st.markdown(formatted_recipe, unsafe_allow_html=True)
+                if recipes:
+                    st.subheader("Normal Recipe Search Results:")
+                    for recipe in recipes:
+                        st.markdown(f"### {recipe['title']}")
+                        st.image(recipe.get("image", ""), width=300)
+
+                        # Enhance with GPT-2
+                        prompt = f"Generate a well-structured recipe based on {recipe['title']} and the ingredients: {query}. Include a title, ingredients, and clear steps. Ensure the recipe fits a {diet_preference} diet."
+                        raw_ai_recipe = gpt2(prompt, max_length=300, num_return_sequences=1)[0]["generated_text"]
+
+                        # Clean and format output
+                        formatted_recipe = clean_and_format_gpt2_output(raw_ai_recipe)
+                        st.markdown("**AI-Enhanced Recipe**")
+                        st.markdown(formatted_recipe, unsafe_allow_html=True)
         else:
-            st.error("No recipes found!")
-    else:
-        st.error("Please enter some ingredients!")
+            st.error("Please enter a valid query!")
+
 
 
 
