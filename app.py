@@ -38,14 +38,13 @@ def prepare_dataset(api_response, user_ingredients):
         used = [ing["name"].lower() for ing in recipe["usedIngredients"]]
         missed = [ing["name"].lower() for ing in recipe["missedIngredients"]]
         total_ingredients = used + missed
-        label = 1 if len(used) / len(total_ingredients) >= 0.3 else 0
+        # Removed the 30% label rule
         recipes.append({
             "title": recipe["title"],
             "ingredients": " ".join(total_ingredients),
             "used_ingredients": used,
             "missing_ingredients": missed,
             "image": recipe.get("image", ""),  # Include image URL
-            "label": label,
             "nutrition": recipe.get("nutrition", {}),  # Nutritional data (if available)
         })
     return pd.DataFrame(recipes)
@@ -158,3 +157,4 @@ if user_input:
             st.markdown("---")
     else:
         st.error("No suitable recipes found. Try different ingredients or dietary preferences!")
+Try different ingredients or dietary preferences!")
