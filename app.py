@@ -77,15 +77,28 @@ if st.button("Generate Suggestions"):
         with st.spinner("Generating AI-enhanced output..."):
             # Generate GPT-2 Enhanced Content
             if search_type_selection == "Search by Ingredients":
-                prompt = f"Create a recipe using these ingredients: {query}."
+                prompt = (
+                    f"You are a professional chef. Create a detailed, step-by-step recipe "
+                    f"using only the following ingredients: {query}. "
+                    f"Include quantities, preparation techniques, cooking instructions, and serving suggestions."
+                )
             else:  # "Search by Recipe"
-                prompt = f"Write a detailed recipe guide for: {query}."
+                prompt = (
+                    f"You are a world-class recipe creator. Write a comprehensive recipe for {query}. "
+                    f"Include a detailed list of ingredients with measurements, step-by-step cooking instructions, "
+                    f"and tips for achieving the best results."
+                )
             
-            gpt2_response = gpt2(prompt, max_length=150, num_return_sequences=1)
-            st.subheader("AI-Generated Output:")
-            st.markdown(gpt2_response[0]["generated_text"])
+            gpt2_response = gpt2(prompt, max_length=200, num_return_sequences=1)
+            generated_text = gpt2_response[0]["generated_text"]
+
+            # Display AI-Generated Output
+            st.subheader("AI-Generated Recipe Output:")
+            st.markdown(generated_text)
+
     else:
         st.error("Please enter a valid query.")
+
 
 
 
