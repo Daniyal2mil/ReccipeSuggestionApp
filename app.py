@@ -6,7 +6,6 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import pandas as pd
-import joblib
 
 # Spoonacular API Setup
 SPOONACULAR_API_KEY = "25d917fef9554ad3b05f732cd181a39f"
@@ -19,7 +18,7 @@ def load_gpt2_model():
 
 gpt2 = load_gpt2_model()
 
-# Train AI Model
+# Train Search Classifier
 @st.cache_resource
 def train_search_classifier():
     # Example dataset for training
@@ -65,21 +64,31 @@ def predict_search_type(query):
 def fetch_recipes(ingredients, diet_preference):
     params = {
         "ingredients": ingredients,
-        "number": 3,
+        "number": 3,  # Limit the number of recipes
         "ranking": 1,
-        "diet": diet_preference if diet_preference != "None" else "",
+        "diet": diet_preference.lower() if diet_preference != "None" else "",
         "apiKey": SPOONACULAR_API_KEY,
     }
-    response = requests.get(SPOONACULAR_URL, params=params)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        st.error("Error fetching recipes from Spoonacular API")
+
+    try:
+        response = requests.get(SPOONACULAR_URL, params=params)
+        if response.status_code == 200:
+            recipes = response.json()
+            if recipes:
+                return recipes
+            else:
+                st.warning("No recipes found for the given ingredients and dietary preferences.")
+                return []
+        else:
+            st.error(f"Error {response.status_code}: {response.text}")
+            return []
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {e}")
         return []
 
 # Streamlit App
 st.title("AI-Enhanced Recipe Generator 🍽️")
-st.write("Enter your ingredients or search by a normal query to get recipe suggestions, enhanced by AI!")
+st.write("Enter your ingredients or a normal query to get recipe suggestions, enhanced by AI!")
 
 query = st.text_area("Enter your query:", placeholder="e.g., tomato, cheese, basil or Pasta dishes")
 diet_choices = ["None", "Vegetarian", "Vegan", "Gluten-Free", "Paleo", "Keto"]
@@ -92,20 +101,23 @@ if st.button("Generate Recipes"):
 
         with st.spinner("Fetching recipes..."):
             if search_type == "ingredients":
+                # Fetch recipes
                 recipes = fetch_recipes(query, diet_preference)
                 if recipes:
+                    st.subheader("Recipes Found:")
                     for recipe in recipes:
-                        st.markdown(f"### {recipe['title']}")
-                        st.image(recipe.get("image", ""), width=300)
+                        st.markdown(f"### {recipe.get('title', 'Untitled')}")
+                        st.image(recipe.get("image", "https://via.placeholder.com/300"), width=300)
 
-                        # Enhance with GPT-2
+                        # Generate GPT-2 Enhanced Recipe
                         prompt = f"Generate a detailed recipe for {recipe['title']} using ingredients: {query}."
                         gpt2_response = gpt2(prompt, max_length=150, num_return_sequences=1)
+                        st.markdown("**AI-Enhanced Recipe**")
                         st.markdown(gpt2_response[0]["generated_text"])
                 else:
-                    st.error("No recipes found!")
+                    st.error("No recipes found.")
             else:
-                st.write("This feature for normal queries is under development!")
+                st.write("Normal search type is under development.")
     else:
         st.error("Please enter a valid query.")
 
