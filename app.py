@@ -13,25 +13,26 @@ model, tokenizer = load_model()
 # Function to generate a detailed recipe from a query
 def generate_recipe(query):
     # Refined prompt asking for more structured and detailed recipe generation
-    prompt = f"Create a detailed, step-by-step recipe for {query}. Include precise measurements, specific cooking techniques, detailed instructions, and tips for preparing the dish. Make sure to describe the cooking process thoroughly, including prep times, cooking times, and serving suggestions."
+    prompt = f"Create a detailed, step-by-step recipe for {query}. Include precise measurements, specific cooking techniques, detailed instructions, and tips for preparing the dish. Make sure to describe the cooking process thoroughly, including prep times, cooking times, and serving suggestions. Be very detailed and include any helpful information."
 
     # Encode the prompt
     inputs = tokenizer.encode(prompt, return_tensors="pt")
 
     # Generate the output with adjusted settings for more detail
     output = model.generate(inputs, 
-                            max_length=500,  # Generate a more detailed response (up to 500 tokens)
+                            max_length=1000,  # Increase max length to generate a much more detailed recipe
                             num_return_sequences=1,  # Return one result
                             no_repeat_ngram_size=2,  # Prevent repetition in the text
-                            temperature=0.7,  # Keep it creative but focused
+                            temperature=0.8,  # Keep it creative, but focused
                             top_p=0.9,  # Ensure diversity in the output
-                            top_k=50)  # Narrow down sampling for relevance
+                            top_k=50,  # Narrow down sampling for relevance
+                            pad_token_id=tokenizer.eos_token_id)  # Avoid truncating the generated output
 
     # Decode the generated text and strip the prompt from the beginning
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
     # Remove the prompt part from the beginning of the generated text
-    recipe = generated_text.replace(f"Create a detailed, step-by-step recipe for {query}. Include precise measurements, specific cooking techniques, detailed instructions, and tips for preparing the dish. Make sure to describe the cooking process thoroughly, including prep times, cooking times, and serving suggestions.", "").strip()
+    recipe = generated_text.replace(f"Create a detailed, step-by-step recipe for {query}. Include precise measurements, specific cooking techniques, detailed instructions, and tips for preparing the dish. Make sure to describe the cooking process thoroughly, including prep times, cooking times, and serving suggestions. Be very detailed and include any helpful information.", "").strip()
 
     return recipe
 
@@ -49,6 +50,7 @@ if st.button("Generate Recipe"):
             st.markdown(recipe)
     else:
         st.error("Please enter a valid recipe query.")
+
 
 
 
