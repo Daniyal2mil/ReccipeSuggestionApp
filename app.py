@@ -6,7 +6,6 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.ensemble import RandomForestClassifier
 
 # Spoonacular API details
 API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
@@ -38,13 +37,14 @@ def prepare_dataset(api_response, user_ingredients):
         used = [ing["name"].lower() for ing in recipe["usedIngredients"]]
         missed = [ing["name"].lower() for ing in recipe["missedIngredients"]]
         total_ingredients = used + missed
-        # Removed the 30% label rule
+        label = 1 if len(used) / len(total_ingredients) >= 0.3 else 0
         recipes.append({
             "title": recipe["title"],
             "ingredients": " ".join(total_ingredients),
             "used_ingredients": used,
             "missing_ingredients": missed,
             "image": recipe.get("image", ""),  # Include image URL
+            "label": label,
             "nutrition": recipe.get("nutrition", {}),  # Nutritional data (if available)
         })
     return pd.DataFrame(recipes)
@@ -58,42 +58,39 @@ def train_classification_model(data):
     model.fit(X, y)
     return model, vectorizer
 
-# Train AI model for dietary preference classification
-def train_dietary_model(data):
+# Train AI model for ingredient importance
+def train_importance_model(data):
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(data["ingredients"])
-    
-    # Create labels for dietary preferences (you can use more complex rules or manual labeling)
-    def dietary_label(row):
-        if 'gluten' in row['ingredients'] and 'milk' not in row['ingredients']:
-            return 'gluten_free'
-        elif 'milk' in row['ingredients']:
-            return 'not_gluten_free'
-        else:
-            return 'other'
-
-    data['dietary_preference'] = data.apply(dietary_label, axis=1)
-    y = data['dietary_preference']
-    
-    model = RandomForestClassifier()
-    model.fit(X, y)
-    return model, vectorizer
+    y = data["label"]
+    regressor = RandomForestRegressor()
+    regressor.fit(X.toarray(), y)
+    return regressor
 
 # Recommend recipes
-def recommend_recipes(user_ingredients, data, model, vectorizer):
+def recommend_recipes(user_ingredients, data, model, vectorizer, similarity_threshold=0.3):
     user_input_vector = vectorizer.transform([" ".join(user_ingredients)])
     data["similarity"] = cosine_similarity(vectorizer.transform(data["ingredients"]), user_input_vector).flatten()
-    recommendations = data.sort_values("similarity", ascending=False)
+    recommendations = data[data["similarity"] >= similarity_threshold].sort_values("similarity", ascending=False)
     return recommendations
 
 # AI-powered dietary preference filter
-def filter_by_dietary_preference(data, dietary_preference, model, vectorizer):
-    # Predict the dietary preference for each recipe using the trained model
-    data['predicted_dietary'] = model.predict(vectorizer.transform(data['ingredients']))
-    
-    # Filter based on user selected dietary preference
-    filtered_data = data[data['predicted_dietary'] == dietary_preference]
-    return filtered_data
+def filter_by_dietary_preference(data, dietary_preference):
+    # This is just a placeholder logic based on AI classification or keyword matching
+    dietary_keywords = {
+        "gluten_free": ["gluten-free", "gluten free", "no gluten"],
+        "keto": ["keto", "low-carb", "high-fat"],
+        "vegetarian": ["vegetarian", "plant-based", "no meat"],
+        "vegan": ["vegan", "no animal products", "plant-based"],
+        # Add more dietary preferences as needed
+    }
+
+    if dietary_preference in dietary_keywords:
+        keywords = dietary_keywords[dietary_preference]
+        # Match recipes that contain dietary-specific keywords
+        filtered_data = data[data["ingredients"].str.contains("|".join(keywords), case=False)]
+        return filtered_data
+    return data
 
 # Streamlit App
 st.title("🍲 AI-Powered Recipe Suggestion App")
@@ -123,33 +120,29 @@ if user_input:
     # Train AI models dynamically
     with st.spinner("Training AI models..."):
         classification_model, vectorizer = train_classification_model(dataset)
-        dietary_model, dietary_vectorizer = train_dietary_model(dataset)
+        importance_model = train_importance_model(dataset)
     
-    # Recommend recipes based on user input (no threshold slider)
-    recommendations = recommend_recipes(user_ingredients, dataset, classification_model, vectorizer)
+    # Adjustable similarity threshold (1-10 scale)
+    similarity_threshold = st.slider(
+        "Adjust Matching Threshold (1-10):",
+        min_value=1,
+        max_value=10,
+        value=3,
+        step=1
+    )
     
-    # Filter recipes by dietary preference (if selected)
+    # Recommend recipes based on user input and dietary preference
+    recommendations = recommend_recipes(user_ingredients, dataset, classification_model, vectorizer, similarity_threshold / 10.0)
+    
+    # Filter recipes by dietary preference
     if dietary_preference != "None":
-        recommendations = filter_by_dietary_preference(recommendations, dietary_preference.lower().replace(" ", "_"), dietary_model, dietary_vectorizer)
+        recommendations = filter_by_dietary_preference(recommendations, dietary_preference.lower().replace(" ", "_"))
     
     if not recommendations.empty:
         st.subheader("🍴 AI-Recommended Recipes:")
-        
-        # Mark the best recipe based on similarity
-        best_recipe = recommendations.iloc[0]
-        st.markdown("### Best AI-Recommended Recipe")
-        st.image(best_recipe["image"], width=200, caption=best_recipe["title"])
-        st.markdown(f"**[{best_recipe['title']}]**")
-        st.markdown(f"**Ingredients Used:** {', '.join(best_recipe['used_ingredients'])}")
-        st.markdown(f"**Missing Ingredients:** {', '.join(best_recipe['missing_ingredients'])}")
-        st.markdown(f"**Similarity Score:** {best_recipe['similarity']:.2f}")
-        st.markdown(f"**Nutrition Info (if available):** {best_recipe['nutrition']}")
-        st.markdown("---")
-        
-        # Show other recipes
-        for _, recipe in recommendations.iloc[1:].iterrows():
+        for _, recipe in recommendations.iterrows():
             st.image(recipe["image"], width=200, caption=recipe["title"])
-            st.markdown(f"**[{recipe['title']}]**")
+            st.markdown(f"**[{recipe['title']}]({recipe['title']})**")
             st.markdown(f"**Ingredients Used:** {', '.join(recipe['used_ingredients'])}")
             st.markdown(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients'])}")
             st.markdown(f"**Similarity Score:** {recipe['similarity']:.2f}")
@@ -157,4 +150,3 @@ if user_input:
             st.markdown("---")
     else:
         st.error("No suitable recipes found. Try different ingredients or dietary preferences!")
-Try different ingredients or dietary preferences!")
