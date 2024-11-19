@@ -3,6 +3,7 @@ requests
 python-dotenv   
 transformers    
 torch          
-sentencepiece     
+sentencepiece
+huggingface_hub
 
 
