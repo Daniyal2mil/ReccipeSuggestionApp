@@ -1,41 +1,43 @@
 import streamlit as st
 import re
-import openai
-from dotenv import load_dotenv
-import os
+from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer
 
-# Load environment variables
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# Load the AI Model
+@st.cache_resource
+def load_model():
+    model_name = "EleutherAI/gpt-neo-1.3B"  # Open-source GPT-Neo model
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+    return generator
 
-# Set OpenAI API Key
-openai.api_key = OPENAI_API_KEY
+# Initialize the model
+generator = load_model()
 
-# Function to test if the API key works
-def test_api_key():
+# Function to generate recipe suggestions
+def generate_recipe_suggestions(ingredients):
+    prompt = f"Suggest 3 recipes I can make using these ingredients: {', '.join(ingredients)}."
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "system", "content": "Say 'Hello, world!'"}]
-        )
-        if response:
-            st.success("OpenAI API key is working correctly!")
-            return True
-        else:
-            st.error("API key validation failed.")
-            return False
+        response = generator(prompt, max_length=300, num_return_sequences=1)
+        return response[0]["generated_text"]
     except Exception as e:
-        st.error(f"API key validation error: {e}")
-        return False
+        st.error(f"Error generating recipes: {e}")
+        return "No recipes available."
 
-# Validate API key at startup
-if not test_api_key():
-    st.stop()  # Stop the app if validation fails
+# Function to suggest substitutes
+def suggest_substitute(ingredient):
+    prompt = f"What is a good substitute for {ingredient} in cooking?"
+    try:
+        response = generator(prompt, max_length=50, num_return_sequences=1)
+        return response[0]["generated_text"]
+    except Exception as e:
+        st.error(f"Error generating substitute: {e}")
+        return "No substitute found."
 
 # Display the app title and description
-st.title("🍲 AI-Powered Recipe Suggestion App with GPT")
+st.title("🍲 AI-Powered Recipe Suggestion App (Open-Source)")
 st.markdown("""<p style="text-align: center; font-size: 1.5em; font-weight: bold; color: #3c763d;">
-    Get personalized recipe ideas, ingredient substitutions, and cooking tips with AI! 🤖</p>
+    Get personalized recipe ideas, ingredient substitutions, and cooking tips with an open-source AI! 🤖</p>
 """, unsafe_allow_html=True)
 
 # Add input for ingredients
@@ -43,35 +45,6 @@ user_ingredients = st.text_input(
     "Enter the ingredients you have (comma-separated):",
     placeholder="e.g., Eggs, Tomatoes, Onions",
 )
-
-# AI Functionality
-def generate_recipe_suggestions(ingredients):
-    prompt = f"Suggest 3 recipes I can make using these ingredients: {', '.join(ingredients)}."
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "system", "content": "You are a helpful assistant."},
-                      {"role": "user", "content": prompt}],
-            max_tokens=300
-        )
-        return response['choices'][0]['message']['content']
-    except Exception as e:
-        st.error(f"Error generating recipes: {e}")
-        return "No recipes available."
-
-def suggest_substitute(ingredient):
-    prompt = f"What is a good substitute for {ingredient} in cooking?"
-    try:
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "system", "content": "You are a helpful assistant."},
-                      {"role": "user", "content": prompt}],
-            max_tokens=50
-        )
-        return response['choices'][0]['message']['content']
-    except Exception as e:
-        st.error(f"Error generating substitute: {e}")
-        return "No substitute found."
 
 # Process user input
 if user_ingredients:
@@ -93,12 +66,7 @@ st.subheader("✨ Cooking Tips and Tricks:")
 if st.button("Get a Cooking Tip"):
     tip_prompt = "Give me a useful cooking tip for beginners."
     try:
-        tip_response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "system", "content": "You are a helpful assistant."},
-                      {"role": "user", "content": tip_prompt}],
-            max_tokens=100
-        )
-        st.write(tip_response['choices'][0]['message']['content'])
+        tip_response = generator(tip_prompt, max_length=100, num_return_sequences=1)
+        st.write(tip_response[0]["generated_text"])
     except Exception as e:
         st.error(f"Error fetching tip: {e}")
