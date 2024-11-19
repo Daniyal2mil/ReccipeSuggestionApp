@@ -1,9 +1,6 @@
-streamlit      
-requests         
-python-dotenv   
-transformers    
-torch          
-sentencepiece
-huggingface_hub
+streamlit
+transformers
+torch
+
 
 
