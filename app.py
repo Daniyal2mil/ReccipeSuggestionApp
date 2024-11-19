@@ -5,13 +5,13 @@ from transformers import pipeline
 from sklearn.externals import joblib
 
 # Spoonacular API Setup
-SPOONACULAR_API_KEY = "YOUR_SPOONACULAR_API_KEY"
+SPOONACULAR_API_KEY = "25d917fef9554ad3b05f732cd181a39f"
 SPOONACULAR_URL = "https://api.spoonacular.com/recipes/findByIngredients"
 
 # GPT-2 Model
 @st.cache_resource
 def load_gpt2_model():
-    return pipeline("text-generation", model="gpt2", tokenizer="gpt2")
+    return pipeline("text-generation", model="distilgpt2", tokenizer="distilgpt2")
 
 gpt2 = load_gpt2_model()
 
@@ -19,10 +19,11 @@ gpt2 = load_gpt2_model()
 model = joblib.load('text_classifier_model.pkl')  # Replace with actual model file path
 
 # Function to get recipes from Spoonacular
+@st.cache
 def fetch_recipes(ingredients, diet_preference):
     params = {
         "ingredients": ingredients,
-        "number": 3,
+        "number": 3,  # Limit the number of recipes to 3
         "ranking": 1,
         "diet": diet_preference,  # Include the dietary preference
         "apiKey": SPOONACULAR_API_KEY,
@@ -90,7 +91,7 @@ if st.button("Generate Recipes"):
 
                         # Enhance with GPT-2
                         prompt = f"Generate a well-structured recipe based on {recipe['title']} and the ingredients: {query}. Include a title, ingredients, and clear steps. Ensure the recipe fits a {diet_preference} diet."
-                        raw_ai_recipe = gpt2(prompt, max_length=300, num_return_sequences=1)[0]["generated_text"]
+                        raw_ai_recipe = gpt2(prompt, max_length=150, num_return_sequences=1)[0]["generated_text"]
 
                         # Clean and format output
                         formatted_recipe = clean_and_format_gpt2_output(raw_ai_recipe)
@@ -110,7 +111,7 @@ if st.button("Generate Recipes"):
 
                         # Enhance with GPT-2
                         prompt = f"Generate a well-structured recipe based on {recipe['title']} and the ingredients: {query}. Include a title, ingredients, and clear steps. Ensure the recipe fits a {diet_preference} diet."
-                        raw_ai_recipe = gpt2(prompt, max_length=300, num_return_sequences=1)[0]["generated_text"]
+                        raw_ai_recipe = gpt2(prompt, max_length=150, num_return_sequences=1)[0]["generated_text"]
 
                         # Clean and format output
                         formatted_recipe = clean_and_format_gpt2_output(raw_ai_recipe)
