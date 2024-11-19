@@ -1,6 +1,7 @@
 streamlit
-transformers
-torch
+sklearn
+pandas
+requests
 
 
 
