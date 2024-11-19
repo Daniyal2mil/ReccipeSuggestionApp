@@ -6,23 +6,23 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import pandas as pd
 
-# LLaMA Model for Recipe Generation
+# GPT-2 Model
 @st.cache_resource
-def load_llama_model():
-    return pipeline("text-generation", model="meta-llama/LLaMA-2-7b-hf", tokenizer="meta-llama/LLaMA-2-7b-hf")
+def load_gpt2_model():
+    return pipeline("text-generation", model="distilgpt2", tokenizer="distilgpt2")
 
-llama = load_llama_model()
+gpt2 = load_gpt2_model()
 
 # Train Search Classifier
 @st.cache_resource
 def train_search_classifier():
-    # Example dataset for training
+    # Example dataset
     data = pd.DataFrame({
         "query": [
             "tomato, cheese, basil",  # Ingredients
-            "chocolate cake recipe",  # Recipe search
+            "How to make lasagna",  # Recipe query
             "onion, garlic, pepper",  # Ingredients
-            "how to make lasagna",  # Recipe search
+            "Pasta dishes",  # Recipe query
         ],
         "label": ["ingredients", "recipe", "ingredients", "recipe"],
     })
@@ -37,7 +37,7 @@ def train_search_classifier():
     # Train-test split
     X_train, X_test, y_train, y_test = train_test_split(X_vectorized, y, test_size=0.2, random_state=42)
 
-    # Train a simple Naive Bayes classifier
+    # Train a Naive Bayes classifier
     classifier = MultinomialNB()
     classifier.fit(X_train, y_train)
 
@@ -55,33 +55,38 @@ def predict_search_type(query):
     return classifier.predict(query_vectorized)[0]
 
 # Streamlit App
-st.title("LLaMA Recipe Generator 🍴")
-st.write("Enter your ingredients or a recipe-related query to generate recipes with AI!")
+st.title("AI-Enhanced Recipe Generator 🍽️")
+st.write("Enter your ingredients or recipe-related query to generate AI-enhanced suggestions!")
 
-query = st.text_area("Enter your query:", placeholder="e.g., tomato, cheese, basil or Pasta dishes")
+# Dropdown for user to explicitly choose search type
+search_options = ["Search by Ingredients", "Search by Recipe"]
+search_type_selection = st.selectbox("Choose search type:", search_options)
 
-if st.button("Generate Recipes"):
+query = st.text_area(
+    "Enter your query:",
+    placeholder="e.g., tomato, cheese, basil or How to make lasagna"
+)
+
+if st.button("Generate Suggestions"):
     if query.strip():
-        search_type = predict_search_type(query)
-        st.write(f"Detected search type: **{search_type}**")
+        # Predict search type if user hasn't explicitly selected
+        predicted_type = predict_search_type(query)
+        st.write(f"Detected search type (based on query): **{predicted_type}**")
+        st.write(f"Search type selected: **{search_type_selection}**")
 
-        with st.spinner("Generating recipes..."):
-            if search_type == "ingredients":
-                # Generate recipes using ingredients
-                prompt = f"Create three recipes using these ingredients: {query}."
-                llama_response = llama(prompt, max_length=150, num_return_sequences=3)
-                st.subheader("AI-Generated Recipes:")
-                for idx, response in enumerate(llama_response, 1):
-                    st.markdown(f"### Recipe {idx}")
-                    st.markdown(response["generated_text"])
-            else:
-                # Generate recipe for a dish
-                prompt = f"Provide a detailed recipe for {query}."
-                llama_response = llama(prompt, max_length=200, num_return_sequences=1)
-                st.subheader("AI-Generated Recipe:")
-                st.markdown(llama_response[0]["generated_text"])
+        with st.spinner("Generating AI-enhanced output..."):
+            # Generate GPT-2 Enhanced Content
+            if search_type_selection == "Search by Ingredients":
+                prompt = f"Create a recipe using these ingredients: {query}."
+            else:  # "Search by Recipe"
+                prompt = f"Write a detailed recipe guide for: {query}."
+            
+            gpt2_response = gpt2(prompt, max_length=150, num_return_sequences=1)
+            st.subheader("AI-Generated Output:")
+            st.markdown(gpt2_response[0]["generated_text"])
     else:
         st.error("Please enter a valid query.")
+
 
 
 
