@@ -12,11 +12,7 @@ model, tokenizer = load_model()
 
 # Function to generate a full recipe from a query
 def generate_recipe(query):
-    prompt = f"Please generate a detailed recipe for '{query}'. Include the following:\n" \
-             f"1. Ingredients with specific measurements.\n" \
-             f"2. Step-by-step cooking instructions.\n" \
-             f"3. Any tips or variations to enhance the dish.\n\n" \
-             f"Recipe:"
+    prompt = f"Generate a detailed recipe for {query}. Include ingredients, instructions, and any tips."
 
     # Encode the prompt
     inputs = tokenizer.encode(prompt, return_tensors="pt")
@@ -47,9 +43,6 @@ if st.button("Generate Recipe"):
             st.markdown(recipe)
     else:
         st.error("Please enter a valid recipe query.")
-
-
-
 
 
 
