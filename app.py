@@ -67,12 +67,31 @@ def train_importance_model(data):
     regressor.fit(X.toarray(), y)
     return regressor
 
-# Recommend recipes
-def recommend_recipes(user_ingredients, data, model, vectorizer, similarity_threshold=0.3):
+# Recommend recipes based on number of matching ingredients
+def recommend_recipes(user_ingredients, data, vectorizer, similarity_threshold=0.3, num_required_matches=1):
+    # Transform user input
     user_input_vector = vectorizer.transform([" ".join(user_ingredients)])
+    
+    # Calculate similarity
     data["similarity"] = cosine_similarity(vectorizer.transform(data["ingredients"]), user_input_vector).flatten()
-    recommendations = data[data["similarity"] >= similarity_threshold].sort_values("similarity", ascending=False)
-    return recommendations
+    
+    # Filter recipes based on matching ingredients count
+    recommendations = []
+    for _, recipe in data.iterrows():
+        used_ingredients_count = len([ing for ing in recipe["used_ingredients"] if ing in user_ingredients])
+        if used_ingredients_count >= num_required_matches:
+            recipe["matching_ingredients_count"] = used_ingredients_count
+            recipe["total_ingredients_count"] = len(user_ingredients)
+            recommendations.append(recipe)
+    
+    # Convert to DataFrame
+    recommendations_df = pd.DataFrame(recommendations)
+    recommendations_df["similarity_score"] = recommendations_df["matching_ingredients_count"].astype(str) + "/" + recommendations_df["total_ingredients_count"].astype(str)
+    
+    # Sort based on similarity score
+    recommendations_df = recommendations_df.sort_values("matching_ingredients_count", ascending=False)
+    
+    return recommendations_df
 
 # Streamlit App
 st.title("🍲 AI-Powered Recipe Suggestion App")
@@ -100,16 +119,16 @@ if user_input:
         importance_model = train_importance_model(dataset)
     
     # Adjustable similarity threshold (1-10 scale)
-    similarity_threshold = st.slider(
-        "Adjust Matching Threshold (1-10):",
+    num_required_matches = st.slider(
+        "Adjust Matching Ingredients (1-10):",
         min_value=1,
         max_value=10,
-        value=3,
+        value=1,
         step=1
     )
     
     # Recommend recipes based on user input
-    recommendations = recommend_recipes(user_ingredients, dataset, classification_model, vectorizer, similarity_threshold / 10.0)
+    recommendations = recommend_recipes(user_ingredients, dataset, vectorizer, similarity_threshold=0.3, num_required_matches=num_required_matches)
     
     if not recommendations.empty:
         st.subheader("🍴 AI-Recommended Recipes:")
@@ -118,11 +137,13 @@ if user_input:
             st.markdown(f"**[{recipe['title']}]({recipe['title']})**")
             st.markdown(f"**Ingredients Used:** {', '.join(recipe['used_ingredients'])}")
             st.markdown(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients'])}")
-            st.markdown(f"**Similarity Score:** {recipe['similarity']:.2f}")
+            st.markdown(f"**Matching Ingredients:** {recipe['matching_ingredients_count']} / {recipe['total_ingredients_count']}")
+            st.markdown(f"**Similarity Score:** {recipe['similarity_score']}")
             st.markdown(f"**Nutrition Info (if available):** {recipe['nutrition']}")
             st.markdown("---")
     else:
         st.error("No suitable recipes found. Try different ingredients!")
+
 
 
 
