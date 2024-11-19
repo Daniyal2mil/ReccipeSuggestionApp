@@ -7,7 +7,7 @@ from huggingface_hub import InferenceClient
 # Load environment variables
 load_dotenv()
 HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
-HF_MODEL = "gpt2"  # Replace with your preferred model
+HF_MODEL = "meta-llama/Llama-2-7b-chat-hf"  # Update to your chosen Llama model
 
 # Initialize Hugging Face Inference Client
 try:
@@ -15,27 +15,27 @@ try:
 except Exception as e:
     st.error(f"Error initializing Hugging Face client: {e}")
 
-# Function to test if the API key is valid
+# Function to test if the API key and model work
 def test_api_key():
     test_prompt = "Hello, world!"
     try:
         response = hf_client.text_generation(prompt=test_prompt, max_new_tokens=10)
         if "generated_text" in response:
-            st.success("Hugging Face API key is working correctly!")
+            st.success("Hugging Face API key and model are working correctly!")
             return True
         else:
-            st.error("API key validation failed. Check your Hugging Face API key.")
+            st.error("API key or model validation failed.")
             return False
     except Exception as e:
         st.error(f"API key validation error: {e}")
         return False
 
-# Validate API key at startup
+# Validate API key and model at startup
 if not test_api_key():
-    st.stop()  # Stop the app if the API key is not valid
+    st.stop()  # Stop the app if validation fails
 
 # Display the app title and description
-st.title("🍲 AI-Powered Recipe Suggestion App")
+st.title("🍲 AI-Powered Recipe Suggestion App with Llama 2")
 st.markdown("""
     <p style="text-align: center; font-size: 1.5em; font-weight: bold; color: #3c763d;">
         Get personalized recipe ideas, ingredient substitutions, and cooking tips with AI! 🤖
@@ -52,7 +52,7 @@ user_ingredients = st.text_input(
 def generate_recipe_suggestions(ingredients):
     prompt = f"Suggest 3 recipes I can make using these ingredients: {', '.join(ingredients)}."
     try:
-        response = hf_client.text_generation(prompt=prompt, max_new_tokens=200)
+        response = hf_client.text_generation(prompt=prompt, max_new_tokens=300)
         return response["generated_text"]
     except Exception as e:
         st.error(f"Error generating recipes: {e}")
