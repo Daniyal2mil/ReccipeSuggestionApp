@@ -69,6 +69,44 @@ def train_cuisine_model(data, cuisines):
     model.fit(X, y)
     return model
 
+# Cuisine Mappings
+cuisines = {
+    "spaghetti carbonara": "Italian",
+    "chicken tikka masala": "Indian",
+    "beef tacos": "Mexican",
+    "pad thai": "Thai",
+    "sushi": "Japanese",
+    "chicken parmesan": "Italian",
+    "ramen": "Japanese",
+    "vegetable stir fry": "Chinese",
+    "falafel": "Middle Eastern",
+    "guacamole": "Mexican",
+    "ceviche": "Peruvian",
+    "moussaka": "Greek",
+    "paella": "Spanish",
+    # Add more mappings as needed
+}
+
+# Ingredient Substitutions
+ingredient_substitutions = {
+    "egg": "flaxseed meal (1 tbsp + 3 tbsp water) or chia seeds",
+    "milk": "almond milk, oat milk, or coconut milk",
+    "butter": "margarine, olive oil, or coconut oil",
+    "chicken": "tofu, tempeh, or seitan",
+    "sugar": "stevia, honey, or maple syrup",
+    "flour": "almond flour, coconut flour, or oat flour",
+    "cheese": "nutritional yeast, vegan cheese, or tofu",
+    "cream": "coconut cream, cashew cream, or soy cream",
+    "yogurt": "almond yogurt, coconut yogurt, or soy yogurt",
+    "soy sauce": "tamari or coconut aminos",
+    "vinegar": "lemon juice or lime juice",
+    "salt": "sea salt, Himalayan salt, or tamari",
+    "olive oil": "avocado oil, canola oil, or vegetable oil",
+    "bacon": "tempeh bacon, coconut bacon, or mushrooms",
+    "ground beef": "lentils, mushrooms, or plant-based ground meat",
+    # Add more substitutions as needed
+}
+
 # Streamlit App
 st.title("🍲 AI-Powered Recipe Suggestion App")
 st.write("Find recipes tailored to your dietary needs and preferences!")
@@ -99,7 +137,7 @@ if user_input:
     # Train AI models dynamically
     with st.spinner("Training AI models..."):
         rating_model = train_rating_model(dataset)
-        cuisine_model = train_cuisine_model(dataset, cuisines={})  # Add your cuisine mappings here
+        cuisine_model = train_cuisine_model(dataset, cuisines)
     
     # Recommend recipes
     st.subheader("🍴 AI-Recommended Recipes:")
@@ -113,7 +151,7 @@ if user_input:
     # Ingredient substitution suggestions
     st.subheader("🔄 Ingredient Substitutions:")
     for ingredient in user_ingredients:
-        st.write(f"If you're out of {ingredient}, try using XYZ!")  # Replace XYZ with actual substitutions
-
-
-
+        if ingredient in ingredient_substitutions:
+            st.write(f"If you're out of {ingredient}, try using {ingredient_substitutions[ingredient]}!")
+        else:
+            st.write(f"No substitutions found for {ingredient}.")
