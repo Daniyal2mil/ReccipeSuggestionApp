@@ -2,9 +2,9 @@ import streamlit as st
 import requests
 import re
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.ensemble import RandomForestRegressor
+import pickle
 import numpy as np
 
 # Spoonacular API details
@@ -38,47 +38,70 @@ def prepare_dataset(api_response):
         missed = [ing["name"].lower() for ing in recipe["missedIngredients"]]
         recipes.append({
             "title": recipe["title"],
-            "ingredients": used + missed,
+            "ingredients": " ".join(used + missed),
             "used_ingredients": used,
             "missing_ingredients": missed,
             "image": recipe.get("image", ""),
             "source_url": recipe.get("sourceUrl", ""),
-            "used_count": len(used),
-            "missing_count": len(missed),
+            "vegan": recipe.get("vegan", False),
+            "glutenFree": recipe.get("glutenFree", False),
+            "keto": recipe.get("keto", False),
         })
     return pd.DataFrame(recipes)
 
-# Train an AI model for recipe scoring
-def train_recipe_model(data):
+# Train a dietary classification model
+def train_dietary_model(data):
     vectorizer = TfidfVectorizer()
-    ingredient_vectors = vectorizer.fit_transform(data["ingredients"].apply(lambda x: " ".join(x)))
-    scores = data["used_count"] - data["missing_count"]  # Simplified scoring: more used, fewer missing
-    model = RandomForestRegressor()
-    model.fit(ingredient_vectors.toarray(), scores)
+    X = vectorizer.fit_transform(data["ingredients"])
+    y = data[["vegan", "glutenFree", "keto"]].astype(int)
+
+    model = RandomForestClassifier()
+    model.fit(X, y)
+
+    # Save model and vectorizer for later use
+    with open("dietary_model.pkl", "wb") as f:
+        pickle.dump((model, vectorizer), f)
+
     return model, vectorizer
 
-# Recommend recipes with AI scoring
-def recommend_recipes(user_ingredients, data, model, vectorizer, weight=0.5):
-    user_vector = vectorizer.transform([" ".join(user_ingredients)]).toarray()
-    data_vectors = vectorizer.transform(data["ingredients"].apply(lambda x: " ".join(x))).toarray()
+# Load the trained model and vectorizer
+def load_dietary_model():
+    with open("dietary_model.pkl", "rb") as f:
+        return pickle.load(f)
+
+# Predict recipes based on dietary preferences
+def predict_recipes(user_ingredients, model, vectorizer, dataset, preferences):
+    user_vector = vectorizer.transform([" ".join(user_ingredients)])
+    predictions = model.predict(user_vector)
     
-    # Calculate similarity and predict scores
-    similarities = cosine_similarity(data_vectors, user_vector).flatten()
-    predictions = model.predict(data_vectors)
-    
-    # Combine similarity and predictions for final score
-    data["ai_score"] = weight * similarities + (1 - weight) * predictions
-    return data.sort_values("ai_score", ascending=False)
+    # Map predictions back to preferences
+    preference_map = {0: "vegan", 1: "glutenFree", 2: "keto"}
+    preference_results = {preference_map[i]: bool(pred) for i, pred in enumerate(predictions.flatten())}
+
+    # Filter dataset based on predictions and user preferences
+    filtered_data = dataset
+    for pref in preferences:
+        if preference_results.get(pref, False):
+            filtered_data = filtered_data[filtered_data[pref] == True]
+
+    return filtered_data
 
 # Streamlit App
-st.title("🍲 AI-Powered Recipe Suggestion App")
-st.write("Find recipes using AI to match your available ingredients with suggestions tailored to your needs!")
+st.title("🍲 AI-Powered Recipe Finder with Dietary Preferences")
+st.write("Find recipes using AI that match your ingredients and dietary needs!")
 
 # User input
 user_input = st.text_input(
     "Enter ingredients you have (comma-separated):",
     placeholder="e.g., chicken, rice, onion",
-    help="List the ingredients you have, and AI will find the best recipes."
+    help="List the ingredients you have, and AI will find recipes tailored to your preferences."
+)
+
+# Dietary preference selection
+dietary_preferences = st.multiselect(
+    "Select your dietary preferences:",
+    options=["vegan", "glutenFree", "keto"],
+    help="Filter recipes to match your dietary needs."
 )
 
 if user_input:
@@ -91,34 +114,26 @@ if user_input:
             api_response = fetch_recipes(user_ingredients)
             dataset = prepare_dataset(api_response)
 
-            # Train AI model
-            with st.spinner("Training AI model..."):
-                model, vectorizer = train_recipe_model(dataset)
+            # Check if model exists, train if not
+            try:
+                model, vectorizer = load_dietary_model()
+            except FileNotFoundError:
+                st.warning("Training AI model for the first time...")
+                model, vectorizer = train_dietary_model(dataset)
 
-            # Adjust AI scoring weight
-            weight = st.slider(
-                "Adjust AI scoring weight (0: ingredient match, 1: AI prediction):",
-                min_value=0.0,
-                max_value=1.0,
-                value=0.5,
-                step=0.1,
-            )
+            # Predict recipes based on user input and preferences
+            filtered_data = predict_recipes(user_ingredients, model, vectorizer, dataset, dietary_preferences)
 
-            # Recommend recipes
-            recommendations = recommend_recipes(user_ingredients, dataset, model, vectorizer, weight)
-
-            # Display recommendations
-            if not recommendations.empty:
-                st.subheader("🍴 Recommended Recipes")
-                for _, recipe in recommendations.iterrows():
+            # Display filtered recipes
+            if not filtered_data.empty:
+                st.subheader("🍴 Filtered Recipes")
+                for _, recipe in filtered_data.iterrows():
                     st.image(recipe["image"], width=200)
                     st.markdown(f"### [{recipe['title']}]({recipe['source_url']})")
                     st.markdown(f"- **Ingredients Used:** {', '.join(recipe['used_ingredients'])}")
                     st.markdown(f"- **Missing Ingredients:** {', '.join(recipe['missing_ingredients'])}")
-                    st.markdown(f"- **AI Score:** {recipe['ai_score']:.2f}")
                     st.markdown("---")
             else:
-                st.error("No recipes found. Try different ingredients.")
+                st.error("No recipes found matching your dietary preferences. Try different filters.")
         except Exception as e:
             st.error(f"Error fetching recipes: {e}")
-
