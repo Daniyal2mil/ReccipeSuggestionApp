@@ -16,15 +16,17 @@ gpt2 = load_gpt2_model()
 # Train Search Classifier
 @st.cache_resource
 def train_search_classifier():
-    # Example dataset
+    # Improved dataset with more variation
     data = pd.DataFrame({
         "query": [
             "tomato, cheese, basil",  # Ingredients
             "How to make lasagna",  # Recipe query
-            "onion, garlic, pepper",  # Ingredients
-            "Pasta dishes",  # Recipe query
+            "chicken, garlic, pepper",  # Ingredients
+            "Biryani recipe",  # Recipe query
+            "apple, cinnamon, sugar",  # Ingredients
+            "Steps to bake a chocolate cake",  # Recipe query
         ],
-        "label": ["ingredients", "recipe", "ingredients", "recipe"],
+        "label": ["ingredients", "recipe", "ingredients", "recipe", "ingredients", "recipe"],
     })
 
     X = data["query"]
@@ -69,35 +71,48 @@ query = st.text_area(
 
 if st.button("Generate Suggestions"):
     if query.strip():
-        # Predict search type if user hasn't explicitly selected
+        # Predict search type using classifier
         predicted_type = predict_search_type(query)
-        st.write(f"Detected search type (based on query): **{predicted_type}**")
-        st.write(f"Search type selected: **{search_type_selection}**")
+        
+        # Use the user's explicit selection as the final search type
+        final_search_type = "ingredients" if search_type_selection == "Search by Ingredients" else "recipe"
+
+        # Feedback on detected and selected search type
+        st.write(f"Detected search type: **{predicted_type}**")
+        st.write(f"Final search type (based on selection): **{final_search_type}**")
 
         with st.spinner("Generating AI-enhanced output..."):
             # Generate GPT-2 Enhanced Content
-            if search_type_selection == "Search by Ingredients":
+            if final_search_type == "ingredients":
                 prompt = (
-                    f"You are a professional chef. Create a detailed, step-by-step recipe "
-                    f"using only the following ingredients: {query}. "
-                    f"Include quantities, preparation techniques, cooking instructions, and serving suggestions."
+                    f"You are a professional chef. Using only the ingredients: {query}, "
+                    f"write a structured recipe including: \n"
+                    f"1. A list of ingredients with quantities.\n"
+                    f"2. Step-by-step preparation instructions.\n"
+                    f"3. Serving suggestions."
                 )
-            else:  # "Search by Recipe"
+            else:  # "recipe"
                 prompt = (
-                    f"You are a world-class recipe creator. Write a comprehensive recipe for {query}. "
-                    f"Include a detailed list of ingredients with measurements, step-by-step cooking instructions, "
-                    f"and tips for achieving the best results."
+                    f"You are a world-class recipe creator. Write a comprehensive recipe for: {query}. "
+                    f"Ensure the output includes: \n"
+                    f"1. A detailed list of ingredients with measurements.\n"
+                    f"2. Clear, step-by-step cooking instructions.\n"
+                    f"3. Cooking tips for best results."
                 )
             
-            gpt2_response = gpt2(prompt, max_length=200, num_return_sequences=1)
+            # Generate response
+            gpt2_response = gpt2(prompt, max_length=250, num_return_sequences=1)
             generated_text = gpt2_response[0]["generated_text"]
 
-            # Display AI-Generated Output
-            st.subheader("AI-Generated Recipe Output:")
-            st.markdown(generated_text)
-
+            # Validate and display output
+            if len(generated_text.strip()) < 50 or "recipe" not in generated_text.lower():
+                st.error("The generated text seems incomplete or irrelevant. Please try again with a clearer query.")
+            else:
+                st.subheader("AI-Generated Recipe Output:")
+                st.markdown(generated_text)
     else:
         st.error("Please enter a valid query.")
+
 
 
 
