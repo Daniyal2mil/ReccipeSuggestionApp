@@ -6,12 +6,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import pandas as pd
 
-# GPT-2 Model
+# Load Flan-T5 Model
 @st.cache_resource
-def load_gpt2_model():
-    return pipeline("text-generation", model="distilgpt2", tokenizer="distilgpt2")
+def load_text_generation_model():
+    # Use Hugging Face's Flan-T5
+    return pipeline("text2text-generation", model="google/flan-t5-base", tokenizer="google/flan-t5-base")
 
-gpt2 = load_gpt2_model()
+text_generator = load_text_generation_model()
 
 # Train Search Classifier
 @st.cache_resource
@@ -82,27 +83,25 @@ if st.button("Generate Suggestions"):
         st.write(f"Final search type (based on selection): **{final_search_type}**")
 
         with st.spinner("Generating AI-enhanced output..."):
-            # Generate GPT-2 Enhanced Content
+            # Generate Enhanced Content with Flan-T5
             if final_search_type == "ingredients":
                 prompt = (
-                    f"You are a professional chef. Using only the ingredients: {query}, "
-                    f"write a structured recipe including: \n"
+                    f"Using only the ingredients: {query}, write a clear and detailed recipe with:\n"
                     f"1. A list of ingredients with quantities.\n"
                     f"2. Step-by-step preparation instructions.\n"
                     f"3. Serving suggestions."
                 )
             else:  # "recipe"
                 prompt = (
-                    f"You are a world-class recipe creator. Write a comprehensive recipe for: {query}. "
-                    f"Ensure the output includes: \n"
+                    f"Write a comprehensive recipe for: {query}. Include:\n"
                     f"1. A detailed list of ingredients with measurements.\n"
                     f"2. Clear, step-by-step cooking instructions.\n"
                     f"3. Cooking tips for best results."
                 )
             
-            # Generate response
-            gpt2_response = gpt2(prompt, max_length=250, num_return_sequences=1)
-            generated_text = gpt2_response[0]["generated_text"]
+            # Generate response with Flan-T5
+            response = text_generator(prompt, max_length=200)
+            generated_text = response[0]["generated_text"]
 
             # Validate and display output
             if len(generated_text.strip()) < 50 or "recipe" not in generated_text.lower():
@@ -112,6 +111,7 @@ if st.button("Generate Suggestions"):
                 st.markdown(generated_text)
     else:
         st.error("Please enter a valid query.")
+
 
 
 
