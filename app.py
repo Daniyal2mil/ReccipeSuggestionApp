@@ -45,7 +45,6 @@ def prepare_dataset(api_response, user_ingredients):
             "missing_ingredients": missed,
             "image": recipe.get("image", ""),  # Include image URL
             "label": label,
-            "nutrition": recipe.get("nutrition", {}),  # Nutritional data (if available)
         })
     return pd.DataFrame(recipes)
 
@@ -139,10 +138,10 @@ if user_input:
             st.markdown(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients'])}")
             st.markdown(f"**Matching Ingredients:** {recipe['matching_ingredients_count']} / {recipe['total_ingredients_count']}")
             st.markdown(f"**Similarity Score:** {recipe['similarity_score']}")
-            st.markdown(f"**Nutrition Info (if available):** {recipe['nutrition']}")
             st.markdown("---")
     else:
         st.error("No suitable recipes found. Try different ingredients!")
+
 
 
 
