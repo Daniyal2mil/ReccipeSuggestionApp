@@ -18,7 +18,7 @@ generator = load_model()
 def generate_recipe_suggestions(ingredients):
     prompt = f"Suggest 3 recipes I can make using these ingredients: {', '.join(ingredients)}."
     try:
-        response = generator(prompt, max_length=300, num_return_sequences=1)
+        response = generator(prompt, max_length=300, num_return_sequences=1, truncation=True)
         return response[0]["generated_text"]
     except Exception as e:
         st.error(f"Error generating recipes: {e}")
@@ -28,7 +28,7 @@ def generate_recipe_suggestions(ingredients):
 def suggest_substitute(ingredient):
     prompt = f"What is a good substitute for {ingredient} in cooking?"
     try:
-        response = generator(prompt, max_length=50, num_return_sequences=1)
+        response = generator(prompt, max_length=300, num_return_sequences=1, truncation=True)
         return response[0]["generated_text"]
     except Exception as e:
         st.error(f"Error generating substitute: {e}")
