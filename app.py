@@ -83,24 +83,24 @@ if st.button("Generate Suggestions"):
         st.write(f"Final search type (based on selection): **{final_search_type}**")
 
         with st.spinner("Generating AI-enhanced output..."):
-            # Generate Enhanced Content with Flan-T5
+            # Enhanced prompt for Flan-T5 model
             if final_search_type == "ingredients":
                 prompt = (
-                    f"Using only the ingredients: {query}, write a clear and detailed recipe with:\n"
-                    f"1. A list of ingredients with quantities.\n"
-                    f"2. Step-by-step preparation instructions.\n"
-                    f"3. Serving suggestions."
+                    f"Create a detailed, step-by-step recipe using ONLY these ingredients: {query}. Include:\n"
+                    f"1. A clear and concise list of ingredients with precise quantities.\n"
+                    f"2. Step-by-step cooking instructions.\n"
+                    f"3. Serving suggestions with tips for enhancing the dish."
                 )
             else:  # "recipe"
                 prompt = (
-                    f"Write a comprehensive recipe for: {query}. Include:\n"
-                    f"1. A detailed list of ingredients with measurements.\n"
-                    f"2. Clear, step-by-step cooking instructions.\n"
-                    f"3. Cooking tips for best results."
+                    f"Write a complete recipe for: {query}. The recipe should include:\n"
+                    f"1. A full list of ingredients with exact measurements.\n"
+                    f"2. Detailed step-by-step instructions for cooking.\n"
+                    f"3. Additional tips or variations to improve the recipe."
                 )
             
             # Generate response with Flan-T5
-            response = text_generator(prompt, max_length=200)
+            response = text_generator(prompt, max_length=400, num_return_sequences=1)
             generated_text = response[0]["generated_text"]
 
             # Validate and display output
