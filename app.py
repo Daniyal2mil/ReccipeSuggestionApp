@@ -4,7 +4,6 @@ import re
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -13,12 +12,14 @@ API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
 API_KEY = "25d917fef9554ad3b05f732cd181a39f"  # Replace with your valid API key
 
 # Fetch recipes from Spoonacular API
-def fetch_recipes(ingredients, number=50):
+def fetch_recipes(ingredients, number=50, diet=None):
     params = {
         "ingredients": ",".join(ingredients),
         "apiKey": API_KEY,
         "number": number,
     }
+    if diet:
+        params["diet"] = diet
     response = requests.get(API_URL, params=params)
     response.raise_for_status()
     return response.json()
@@ -46,20 +47,12 @@ def prepare_dataset(api_response, user_ingredients):
             "missing_ingredients": missed,
             "image": recipe.get("image", ""),  # Include image URL
             "label": label,
+            "cuisine": "unknown",  # Placeholder for AI-predicted cuisine
         })
     return pd.DataFrame(recipes)
 
-# Train AI model for recipe classification
-def train_classification_model(data):
-    vectorizer = TfidfVectorizer()
-    X = vectorizer.fit_transform(data["ingredients"])
-    y = data["label"]
-    model = LogisticRegression()
-    model.fit(X, y)
-    return model, vectorizer
-
-# Train AI model for ingredient importance
-def train_importance_model(data):
+# Train AI model for recipe satisfaction rating
+def train_rating_model(data):
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(data["ingredients"])
     y = data["label"]
@@ -67,24 +60,18 @@ def train_importance_model(data):
     regressor.fit(X.toarray(), y)
     return regressor
 
-# Recommend recipes
-def recommend_recipes(user_ingredients, data, model, vectorizer, similarity_threshold=0.3):
-    user_input_vector = vectorizer.transform([" ".join(user_ingredients)])
-    data["similarity"] = cosine_similarity(vectorizer.transform(data["ingredients"]), user_input_vector).flatten()
-    recommendations = data[data["similarity"] >= similarity_threshold].sort_values("similarity", ascending=False)
-    return recommendations
-
-# Cluster recipes using K-Means
-def cluster_recipes(data, n_clusters=3):
+# Train AI model for cuisine classification
+def train_cuisine_model(data, cuisines):
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(data["ingredients"])
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    data["cluster"] = kmeans.fit_predict(X)
-    return data, kmeans
+    y = [cuisines.get(title.lower(), "unknown") for title in data["title"]]
+    model = LogisticRegression()
+    model.fit(X, y)
+    return model
 
 # Streamlit App
 st.title("🍲 AI-Powered Recipe Suggestion App")
-st.write("This app uses AI to suggest recipes and discover new insights!")
+st.write("Find recipes tailored to your dietary needs and preferences!")
 
 # User input
 user_input = st.text_input(
@@ -92,42 +79,41 @@ user_input = st.text_input(
     placeholder="e.g., Buttermilk, Chicken, Paprika",
 )
 
+# Dietary preference
+diet_option = st.selectbox(
+    "Select your dietary preference:",
+    ["None", "Gluten-Free", "Keto", "Vegetarian", "Vegan", "Dairy-Free", "Paleo"]
+)
+diet = None if diet_option == "None" else diet_option.lower()
+
 if user_input:
     user_ingredients = preprocess_ingredients(user_input)
     
     # Fetch recipes from Spoonacular API
     with st.spinner("Fetching recipes..."):
-        api_response = fetch_recipes(user_ingredients)
+        api_response = fetch_recipes(user_ingredients, diet=diet)
     
     # Prepare dataset from API response
     dataset = prepare_dataset(api_response, user_ingredients)
     
     # Train AI models dynamically
     with st.spinner("Training AI models..."):
-        classification_model, vectorizer = train_classification_model(dataset)
-        importance_model = train_importance_model(dataset)
-        clustered_data, kmeans_model = cluster_recipes(dataset)
-    
-    # Adjustable similarity threshold
-    similarity_threshold = st.slider("Adjust Matching Threshold:", 0.1, 1.0, 0.3, 0.1)
+        rating_model = train_rating_model(dataset)
+        cuisine_model = train_cuisine_model(dataset, cuisines={})  # Add your cuisine mappings here
     
     # Recommend recipes
-    recommendations = recommend_recipes(user_ingredients, dataset, classification_model, vectorizer, similarity_threshold)
+    st.subheader("🍴 AI-Recommended Recipes:")
+    for _, recipe in dataset.iterrows():
+        st.image(recipe["image"], width=200, caption=recipe["title"])
+        st.markdown(f"**[{recipe['title']}]({recipe['title']})**")
+        st.markdown(f"**Ingredients Used:** {', '.join(recipe['used_ingredients'])}")
+        st.markdown(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients'])}")
+        st.markdown("---")
     
-    if not recommendations.empty:
-        st.subheader("🍴 AI-Recommended Recipes:")
-        for _, recipe in recommendations.iterrows():
-            st.image(recipe["image"], width=200, caption=recipe["title"])
-            st.markdown(f"**[{recipe['title']}]({recipe['title']})**")
-            st.markdown(f"**Ingredients Used:** {', '.join(recipe['used_ingredients'])}")
-            st.markdown(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients'])}")
-            st.markdown(f"**Similarity Score:** {recipe['similarity']:.2f}")
-            st.markdown("---")
-    else:
-        st.error("No suitable recipes found. Try different ingredients!")
-    
-    # Show clusters
-    st.subheader("🍴 Recipe Clusters:")
-    st.write(clustered_data.groupby("cluster")["title"].apply(list))
+    # Ingredient substitution suggestions
+    st.subheader("🔄 Ingredient Substitutions:")
+    for ingredient in user_ingredients:
+        st.write(f"If you're out of {ingredient}, try using XYZ!")  # Replace XYZ with actual substitutions
+
 
 
