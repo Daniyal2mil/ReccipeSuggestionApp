@@ -1,7 +1,7 @@
 import streamlit as st
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-# Load DistilGPT2 Model
+# Load the DistilGPT2 Model
 @st.cache_resource
 def load_model():
     model = GPT2LMHeadModel.from_pretrained("distilgpt2")  # DistilGPT2 for faster performance
@@ -10,20 +10,27 @@ def load_model():
 
 model, tokenizer = load_model()
 
-# Function to generate recipe based on recipe query
+# Function to generate a full recipe from a query
 def generate_recipe(query):
-    prompt = f"Write a complete recipe for: {query}. The recipe should include:\n" \
-             f"1. A list of ingredients with exact measurements.\n" \
-             f"2. Step-by-step instructions.\n" \
-             f"3. Additional tips or variations to enhance the dish."
+    prompt = f"Please generate a detailed recipe for '{query}'. Include the following:\n" \
+             f"1. Ingredients with specific measurements.\n" \
+             f"2. Step-by-step cooking instructions.\n" \
+             f"3. Any tips or variations to enhance the dish.\n\n" \
+             f"Recipe:"
 
     # Encode the prompt
     inputs = tokenizer.encode(prompt, return_tensors="pt")
 
-    # Generate output
-    output = model.generate(inputs, max_length=400, num_return_sequences=1, no_repeat_ngram_size=2, temperature=0.7)
+    # Generate the output with better settings to ensure a more detailed response
+    output = model.generate(inputs, 
+                            max_length=400,  # Generate up to 400 tokens for a fuller recipe
+                            num_return_sequences=1,  # Return one result
+                            no_repeat_ngram_size=2,  # Prevent repetition in the text
+                            temperature=0.7,  # Control randomness
+                            top_p=0.9,  # Ensure diverse outputs by sampling from top 90% likely words
+                            top_k=50)  # Narrow down the sampling to top 50 choices for speed and relevance
     
-    # Decode and return the generated text
+    # Decode and return the generated recipe
     return tokenizer.decode(output[0], skip_special_tokens=True)
 
 # Streamlit App
