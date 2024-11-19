@@ -4,7 +4,6 @@ import re
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -46,6 +45,7 @@ def prepare_dataset(api_response, user_ingredients):
             "missing_ingredients": missed,
             "image": recipe.get("image", ""),  # Include image URL
             "label": label,
+            "nutrition": recipe.get("nutrition", {}),  # Nutritional data (if available)
         })
     return pd.DataFrame(recipes)
 
@@ -74,22 +74,37 @@ def recommend_recipes(user_ingredients, data, model, vectorizer, similarity_thre
     recommendations = data[data["similarity"] >= similarity_threshold].sort_values("similarity", ascending=False)
     return recommendations
 
-# Cluster recipes using K-Means
-def cluster_recipes(data, n_clusters=3):
-    vectorizer = TfidfVectorizer()
-    X = vectorizer.fit_transform(data["ingredients"])
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-    data["cluster"] = kmeans.fit_predict(X)
-    return data, kmeans
+# AI-powered dietary preference filter
+def filter_by_dietary_preference(data, dietary_preference):
+    # This is just a placeholder logic based on AI classification or keyword matching
+    dietary_keywords = {
+        "gluten_free": ["gluten-free", "gluten free", "no gluten"],
+        "keto": ["keto", "low-carb", "high-fat"],
+        "vegetarian": ["vegetarian", "plant-based", "no meat"],
+        "vegan": ["vegan", "no animal products", "plant-based"],
+        # Add more dietary preferences as needed
+    }
+
+    if dietary_preference in dietary_keywords:
+        keywords = dietary_keywords[dietary_preference]
+        # Match recipes that contain dietary-specific keywords
+        filtered_data = data[data["ingredients"].str.contains("|".join(keywords), case=False)]
+        return filtered_data
+    return data
 
 # Streamlit App
 st.title("🍲 AI-Powered Recipe Suggestion App")
-st.write("This app uses AI to suggest recipes and discover new insights!")
+st.write("This app uses AI to suggest recipes based on ingredients and dietary preferences!")
 
 # User input
 user_input = st.text_input(
     "Enter the ingredients you have (comma-separated):",
     placeholder="e.g., Buttermilk, Chicken, Paprika",
+)
+
+dietary_preference = st.selectbox(
+    "Choose your dietary preference:",
+    options=["None", "Gluten-Free", "Keto", "Vegetarian", "Vegan"]
 )
 
 if user_input:
@@ -106,13 +121,22 @@ if user_input:
     with st.spinner("Training AI models..."):
         classification_model, vectorizer = train_classification_model(dataset)
         importance_model = train_importance_model(dataset)
-        clustered_data, kmeans_model = cluster_recipes(dataset)
     
-    # Adjustable similarity threshold
-    similarity_threshold = st.slider("Adjust Matching Threshold:", 0.1, 1.0, 0.3, 0.1)
+    # Adjustable similarity threshold (1-10 scale)
+    similarity_threshold = st.slider(
+        "Adjust Matching Threshold (1-10):",
+        min_value=1,
+        max_value=10,
+        value=3,
+        step=1
+    )
     
-    # Recommend recipes
-    recommendations = recommend_recipes(user_ingredients, dataset, classification_model, vectorizer, similarity_threshold)
+    # Recommend recipes based on user input and dietary preference
+    recommendations = recommend_recipes(user_ingredients, dataset, classification_model, vectorizer, similarity_threshold / 10.0)
+    
+    # Filter recipes by dietary preference
+    if dietary_preference != "None":
+        recommendations = filter_by_dietary_preference(recommendations, dietary_preference.lower().replace(" ", "_"))
     
     if not recommendations.empty:
         st.subheader("🍴 AI-Recommended Recipes:")
@@ -122,10 +146,8 @@ if user_input:
             st.markdown(f"**Ingredients Used:** {', '.join(recipe['used_ingredients'])}")
             st.markdown(f"**Missing Ingredients:** {', '.join(recipe['missing_ingredients'])}")
             st.markdown(f"**Similarity Score:** {recipe['similarity']:.2f}")
+            st.markdown(f"**Nutrition Info (if available):** {recipe['nutrition']}")
             st.markdown("---")
     else:
-        st.error("No suitable recipes found. Try different ingredients!")
-    
-    # Show clusters
-    st.subheader("🍴 Recipe Clusters:")
-    st.write(clustered_data.groupby("cluster")["title"].apply(list))
+        st.error("No suitable recipes found. Try different ingredients or dietary preferences!")
+
