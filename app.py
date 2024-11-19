@@ -10,29 +10,28 @@ def load_model():
 
 model, tokenizer = load_model()
 
-# Function to generate a detailed recipe from a query
+# Function to generate a full recipe from a query
 def generate_recipe(query):
-    # Refined prompt asking for more structured and detailed recipe generation
-    prompt = f"Create a detailed, step-by-step recipe for {query}. Include precise measurements, specific cooking techniques, detailed instructions, and tips for preparing the dish. Make sure to describe the cooking process thoroughly, including prep times, cooking times, and serving suggestions. Be very detailed and include any helpful information."
+    # Simplified prompt to guide the model without including instructions in the output
+    prompt = f"Generate a detailed recipe for {query}. Include ingredients, instructions, and any tips."
 
     # Encode the prompt
     inputs = tokenizer.encode(prompt, return_tensors="pt")
 
-    # Generate the output with adjusted settings for more detail
+    # Generate the output with better settings to ensure a more detailed response
     output = model.generate(inputs, 
-                            max_length=1000,  # Increase max length to generate a much more detailed recipe
+                            max_length=400,  # Generate up to 400 tokens for a fuller recipe
                             num_return_sequences=1,  # Return one result
                             no_repeat_ngram_size=2,  # Prevent repetition in the text
-                            temperature=0.8,  # Keep it creative, but focused
-                            top_p=0.9,  # Ensure diversity in the output
-                            top_k=50,  # Narrow down sampling for relevance
-                            pad_token_id=tokenizer.eos_token_id)  # Avoid truncating the generated output
+                            temperature=0.7,  # Control randomness
+                            top_p=0.9,  # Ensure diverse outputs by sampling from top 90% likely words
+                            top_k=50)  # Narrow down the sampling to top 50 choices for speed and relevance
 
     # Decode the generated text and strip the prompt from the beginning
     generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
 
     # Remove the prompt part from the beginning of the generated text
-    recipe = generated_text.replace(f"Create a detailed, step-by-step recipe for {query}. Include precise measurements, specific cooking techniques, detailed instructions, and tips for preparing the dish. Make sure to describe the cooking process thoroughly, including prep times, cooking times, and serving suggestions. Be very detailed and include any helpful information.", "").strip()
+    recipe = generated_text.replace(f"Generate a detailed recipe for {query}. Include ingredients, instructions, and any tips.", "").strip()
 
     return recipe
 
@@ -50,7 +49,6 @@ if st.button("Generate Recipe"):
             st.markdown(recipe)
     else:
         st.error("Please enter a valid recipe query.")
-
 
 
 
