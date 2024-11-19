@@ -6,6 +6,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.ensemble import RandomForestClassifier
 
 # Spoonacular API details
 API_URL = "https://api.spoonacular.com/recipes/findByIngredients"
@@ -58,14 +59,26 @@ def train_classification_model(data):
     model.fit(X, y)
     return model, vectorizer
 
-# Train AI model for ingredient importance
-def train_importance_model(data):
+# Train AI model for dietary preference classification
+def train_dietary_model(data):
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(data["ingredients"])
-    y = data["label"]
-    regressor = RandomForestRegressor()
-    regressor.fit(X.toarray(), y)
-    return regressor
+    
+    # Create labels for dietary preferences (you can use more complex rules or manual labeling)
+    def dietary_label(row):
+        if 'gluten' in row['ingredients'] and 'milk' not in row['ingredients']:
+            return 'gluten_free'
+        elif 'milk' in row['ingredients']:
+            return 'not_gluten_free'
+        else:
+            return 'other'
+
+    data['dietary_preference'] = data.apply(dietary_label, axis=1)
+    y = data['dietary_preference']
+    
+    model = RandomForestClassifier()
+    model.fit(X, y)
+    return model, vectorizer
 
 # Recommend recipes
 def recommend_recipes(user_ingredients, data, model, vectorizer):
@@ -75,20 +88,13 @@ def recommend_recipes(user_ingredients, data, model, vectorizer):
     return recommendations
 
 # AI-powered dietary preference filter
-def filter_by_dietary_preference(data, dietary_preference):
-    dietary_keywords = {
-        "gluten_free": ["gluten-free", "gluten free", "no gluten"],
-        "keto": ["keto", "low-carb", "high-fat"],
-        "vegetarian": ["vegetarian", "plant-based", "no meat"],
-        "vegan": ["vegan", "no animal products", "plant-based"],
-    }
-
-    if dietary_preference in dietary_keywords:
-        keywords = dietary_keywords[dietary_preference]
-        # Match recipes that contain dietary-specific keywords
-        filtered_data = data[data["ingredients"].str.contains("|".join(keywords), case=False)]
-        return filtered_data
-    return data
+def filter_by_dietary_preference(data, dietary_preference, model, vectorizer):
+    # Predict the dietary preference for each recipe using the trained model
+    data['predicted_dietary'] = model.predict(vectorizer.transform(data['ingredients']))
+    
+    # Filter based on user selected dietary preference
+    filtered_data = data[data['predicted_dietary'] == dietary_preference]
+    return filtered_data
 
 # Streamlit App
 st.title("🍲 AI-Powered Recipe Suggestion App")
@@ -118,14 +124,14 @@ if user_input:
     # Train AI models dynamically
     with st.spinner("Training AI models..."):
         classification_model, vectorizer = train_classification_model(dataset)
-        importance_model = train_importance_model(dataset)
+        dietary_model, dietary_vectorizer = train_dietary_model(dataset)
     
     # Recommend recipes based on user input (no threshold slider)
     recommendations = recommend_recipes(user_ingredients, dataset, classification_model, vectorizer)
     
-    # Filter recipes by dietary preference
+    # Filter recipes by dietary preference (if selected)
     if dietary_preference != "None":
-        recommendations = filter_by_dietary_preference(recommendations, dietary_preference.lower().replace(" ", "_"))
+        recommendations = filter_by_dietary_preference(recommendations, dietary_preference.lower().replace(" ", "_"), dietary_model, dietary_vectorizer)
     
     if not recommendations.empty:
         st.subheader("🍴 AI-Recommended Recipes:")
