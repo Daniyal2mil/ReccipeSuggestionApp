@@ -48,7 +48,7 @@ def prepare_dataset(api_response, user_ingredients):
         })
     return pd.DataFrame(recipes)
 
-# Train AI model for recipe classification
+# model for recipe classification
 def train_classification_model(data):
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(data["ingredients"])
@@ -57,7 +57,7 @@ def train_classification_model(data):
     model.fit(X, y)
     return model, vectorizer
 
-# Train AI model for ingredient importance
+#model for ingredient importance
 def train_importance_model(data):
     vectorizer = TfidfVectorizer()
     X = vectorizer.fit_transform(data["ingredients"])
@@ -66,15 +66,10 @@ def train_importance_model(data):
     regressor.fit(X.toarray(), y)
     return regressor
 
-# Recommend recipes based on number of matching ingredients
 def recommend_recipes(user_ingredients, data, vectorizer, similarity_threshold=0.3, num_required_matches=1):
-    # Transform user input
     user_input_vector = vectorizer.transform([" ".join(user_ingredients)])
-    
-    # Calculate similarity
     data["similarity"] = cosine_similarity(vectorizer.transform(data["ingredients"]), user_input_vector).flatten()
     
-    # Filter recipes based on matching ingredients count
     recommendations = []
     for _, recipe in data.iterrows():
         used_ingredients_count = len([ing for ing in recipe["used_ingredients"] if ing in user_ingredients])
@@ -83,16 +78,13 @@ def recommend_recipes(user_ingredients, data, vectorizer, similarity_threshold=0
             recipe["total_ingredients_count"] = len(user_ingredients)
             recommendations.append(recipe)
     
-    # Convert to DataFrame
     recommendations_df = pd.DataFrame(recommendations)
     recommendations_df["similarity_score"] = recommendations_df["matching_ingredients_count"].astype(str) + "/" + recommendations_df["total_ingredients_count"].astype(str)
     
-    # Sort based on similarity score
     recommendations_df = recommendations_df.sort_values("matching_ingredients_count", ascending=False)
     
     return recommendations_df
 
-# Streamlit App
 st.title("🍲 AI-Powered Recipe Suggestion App")
 st.write("This app uses AI to suggest recipes based on ingredients!")
 
@@ -112,7 +104,7 @@ if user_input:
     # Prepare dataset from API response
     dataset = prepare_dataset(api_response, user_ingredients)
     
-    # Train AI models dynamically
+    # dynamicall model
     with st.spinner("Training AI models..."):
         classification_model, vectorizer = train_classification_model(dataset)
         importance_model = train_importance_model(dataset)
